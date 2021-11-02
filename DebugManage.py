@@ -10,6 +10,9 @@ from ClientConfView import ClientConfView
 from SnapshotImportView import SnapshotImportView
 from SnapshotExportView import SnapshotExportView
 from SnapshotCompareView import SnapshotCompareView
+from InstructionsView import ISREFView, ISDUTView
+from RegisterView import RegisterREFView, RegisterDUTView
+from MemoryView import MemoryREFView, MemoryDUTView
 
 class DebugManage:
     """
@@ -24,43 +27,30 @@ class DebugManage:
         self.exportView = SnapshotExportView()
         self.compareView = SnapshotCompareView()
 
+        self.ISREFView = ISREFView()
+        self.ISDUTView = ISDUTView()
+        self.RegREFView = RegisterREFView()
+        self.RegDUTView = RegisterDUTView()
+        self.MemREFView = MemoryREFView()
+        self.MemDUTView = MemoryDUTView()
+
         self.init()
 
     def init(self):
-        """ load all UI and settings"""
+        """ load all UI """
         # load main ui
         self.main_ui = uic.loadUi("ui/manageV0.1.ui")
         self.main_ui.setWindowTitle("CPU Auto Debug System")
         self.main_ui.move(500, 200)
 
-        # load Instructions ui(REF and DUT)
-        self.ISREF_ui = uic.loadUi("ui/IS_REF.ui")
-        self.ISREF_ui.hide()
-        self.ISDUT_ui = uic.loadUi("ui/IS_DUT.ui")
-        self.ISDUT_ui.hide()
-
-        # load registers ui(REF and DUT)
-        self.RegREF_ui = uic.loadUi("ui/Reg_REF.ui")
-        self.RegREF_ui.hide()
-        self.RegDUT_ui = uic.loadUi("ui/Reg_DUT.ui")
-        self.RegDUT_ui.hide()
-
-        # load Memory Data ui(REF and DUT)
-        self.MemREF_ui = uic.loadUi("ui/Mem_REF.ui")
-        self.MemREF_ui.hide()
-        self.MemDUT_ui = uic.loadUi("ui/Mem_DUT.ui")
-        self.MemDUT_ui.hide()
-        self.MemREF_ui.Mem_REF_tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.MemDUT_ui.Mem_DUT_tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
         """ add widget for main ui """
         # add widget for reference and DUT [Instruction, Register, Memory]
-        self.main_ui.REF_layout.addWidget(self.ISREF_ui)
-        self.main_ui.DUT_layout.addWidget(self.ISDUT_ui)
-        self.main_ui.REF_layout.addWidget(self.RegREF_ui)
-        self.main_ui.DUT_layout.addWidget(self.RegDUT_ui)
-        self.main_ui.REF_layout.addWidget(self.MemREF_ui)
-        self.main_ui.DUT_layout.addWidget(self.MemDUT_ui)
+        self.main_ui.REF_layout.addWidget(self.ISREFView.ISREF_ui)
+        self.main_ui.DUT_layout.addWidget(self.ISDUTView.ISDUT_ui)
+        self.main_ui.REF_layout.addWidget(self.RegREFView.RegREF_ui)
+        self.main_ui.DUT_layout.addWidget(self.RegDUTView.RegDUT_ui)
+        self.main_ui.REF_layout.addWidget(self.MemREFView.MemREF_ui)
+        self.main_ui.DUT_layout.addWidget(self.MemDUTView.MemDUT_ui)
 
         # add widget for statusbar
         self.main_ui.link_status = QLabel('{:<40}'.format('链接状态：'))
@@ -92,40 +82,40 @@ class DebugManage:
     def intoMainView(self):
         self.main_ui.REF_widget.show()
         self.main_ui.DUT_widget.show()
-        self.ISREF_ui.hide()
-        self.ISDUT_ui.hide()
-        self.RegREF_ui.hide()
-        self.RegDUT_ui.hide()
-        self.MemREF_ui.hide()
-        self.MemDUT_ui.hide()
+        self.ISREFView.ISREF_ui.hide()
+        self.ISDUTView.ISDUT_ui.hide()
+        self.RegREFView.RegREF_ui.hide()
+        self.RegDUTView.RegDUT_ui.hide()
+        self.MemREFView.MemREF_ui.hide()
+        self.MemDUTView.MemDUT_ui.hide()
 
     def intoInstructionView(self):
-        self.ISREF_ui.show()
-        self.ISDUT_ui.show()
-        self.RegREF_ui.hide()
-        self.RegDUT_ui.hide()
-        self.MemREF_ui.hide()
-        self.MemDUT_ui.hide()
+        self.ISREFView.ISREF_ui.show()
+        self.ISDUTView.ISDUT_ui.show()
+        self.RegREFView.RegREF_ui.hide()
+        self.RegDUTView.RegDUT_ui.hide()
+        self.MemREFView.MemREF_ui.hide()
+        self.MemDUTView.MemDUT_ui.hide()
         self.main_ui.REF_widget.hide()
         self.main_ui.DUT_widget.hide()
 
     def intoRegisterView(self):
-        self.RegREF_ui.show()
-        self.RegDUT_ui.show()
-        self.ISREF_ui.hide()
-        self.ISDUT_ui.hide()
-        self.MemREF_ui.hide()
-        self.MemDUT_ui.hide()
+        self.RegREFView.RegREF_ui.show()
+        self.RegDUTView.RegDUT_ui.show()
+        self.ISREFView.ISREF_ui.hide()
+        self.ISDUTView.ISDUT_ui.hide()
+        self.MemREFView.MemREF_ui.hide()
+        self.MemDUTView.MemDUT_ui.hide()
         self.main_ui.REF_widget.hide()
         self.main_ui.DUT_widget.hide()
 
     def intoMemoryView(self):
-        self.MemREF_ui.show()
-        self.MemDUT_ui.show()
-        self.RegREF_ui.hide()
-        self.RegDUT_ui.hide()
-        self.ISREF_ui.hide()
-        self.ISDUT_ui.hide()
+        self.MemREFView.MemREF_ui.show()
+        self.MemDUTView.MemDUT_ui.show()
+        self.RegREFView.RegREF_ui.hide()
+        self.RegDUTView.RegDUT_ui.hide()
+        self.ISREFView.ISREF_ui.hide()
+        self.ISDUTView.ISDUT_ui.hide()
         self.main_ui.REF_widget.hide()
         self.main_ui.DUT_widget.hide()
 
