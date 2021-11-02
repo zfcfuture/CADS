@@ -67,6 +67,8 @@ class DebugManage:
         self.main_ui.statusbar.addWidget(self.main_ui.hart_status)
         self.main_ui.statusbar.addWidget(self.main_ui.pc_status, 1)
 
+        # add load-table for main ui
+
         """ connect signal and slot """
         # signal and slot for main ui
         self.main_ui.Main_button.clicked.connect(self.intoMainView)
