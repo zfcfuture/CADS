@@ -1,0 +1,20 @@
+/* QSS stylesheet */
+
+QWidget#widget_3 QPushButton#IS_button:hover
+{
+    /* border-left: 4px solid; */
+    color: black;
+    font-weight: 700;
+}
+
+QWidget#widget_3 QPushButton#Reg_button:hover
+{
+    color: black;
+    font-weight: 700;
+}
+
+QWidget#widget_3 QPushButton#Mem_button:hover
+{
+    color: black;
+    font-weight: 700;
+}
