@@ -77,7 +77,7 @@ class DebugManage:
         self.loadButton.setText('加载')
         self.main_ui.LoadLayout.addWidget(self.loadButton, 9, 16, 1, 1)
 
-        self.taskTable.setHorizontalHeaderLabels(['加载情况', '任务名'])
+        self.taskTable.setHorizontalHeaderLabels(['Check', '任务名'])
         self.taskTable.horizontalHeader().setStretchLastSection(True)
         self.taskTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.taskTable.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
@@ -97,6 +97,7 @@ class DebugManage:
         self.main_ui.compareButton.clicked.connect(self.showCompare)
 
         self.main_ui.compile_Button.clicked.connect(self.handleCompile)
+        self.loadButton.clicked.connect(self.handleLoadELF)
 
     def intoMainView(self):
         self.main_ui.REF_widget.show()
@@ -154,15 +155,17 @@ class DebugManage:
         self.compareView.compare_ui.show()
 
     def handleCompile(self):
-        # Temporarily used to load files
-        ELF_files, _ = QFileDialog.getOpenFileNames(self.main_ui,'选择文件')
+        # Temporarily used to load local ELF-files to taskTable
+        self.ELF_files_path, _ = QFileDialog.getOpenFileNames(self.main_ui,'选择文件')
         
-        if len(ELF_files) == 0:
+        if len(self.ELF_files_path) == 0:
             return
+
+        files = [x.split("/")[-1] for x in self.ELF_files_path]
 
         cur_rows = self.taskTable.rowCount()
         rows_flag = 0
-        for file in ELF_files:
+        for file in files:
             if rows_flag >= cur_rows:
                 self.taskTable.insertRow(cur_rows)
                 # add contents to the new row
@@ -183,6 +186,10 @@ class DebugManage:
                 self.item_filename.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                 self.taskTable.setItem(rows_flag, 1, self.item_filename)
                 rows_flag += 1
+
+    def handleLoadELF(self):
+        """ load the checked ELF-file to host PC """
+        
 
 class TableWidget(QTableWidget):
     """
