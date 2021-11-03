@@ -189,6 +189,9 @@ class DebugManage:
 
     def handleLoadELF(self):
         """ load the checked ELF-file to host PC """
+        # print(self.serverView.remoteHost)
+        if self.serverView.remoteHost == "HAPS01":
+            ip = "10.12.208.30"
         
 
 class TableWidget(QTableWidget):
