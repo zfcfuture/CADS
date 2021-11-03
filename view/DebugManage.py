@@ -1,9 +1,10 @@
 import sys
 
-from PyQt5 import uic
+from PyQt5 import uic, QtCore
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QSettings, Qt
-from PyQt5.QtWidgets import QApplication, QLabel, QComboBox, QMessageBox, QHeaderView, QFileDialog
+from PyQt5.QtWidgets import (QApplication, QLabel, QComboBox, QPushButton, QTableWidget, QAbstractItemView,
+                             QTableWidgetItem, QHeaderView, QFileDialog)
 
 from ServerConfView import ServerConfView
 from ClientConfView import ClientConfView
@@ -41,7 +42,7 @@ class DebugManage:
         # load main ui
         self.main_ui = uic.loadUi("ui/manageV0.1.ui")
         self.main_ui.setWindowTitle("CPU Auto Debug System")
-        self.main_ui.move(500, 200)
+        self.main_ui.move(250, 150)
 
         """ add widget for main ui """
         # add widget for reference and DUT [Instruction, Register, Memory]
@@ -67,7 +68,20 @@ class DebugManage:
         self.main_ui.statusbar.addWidget(self.main_ui.hart_status)
         self.main_ui.statusbar.addWidget(self.main_ui.pc_status, 1)
 
-        # add load-table for main ui
+        # add load-table and load-button for main ui
+        self.taskTable = TableWidget(3, 2)
+        self.main_ui.LoadLayout.addWidget(self.taskTable, 0, 0, 10, 15)
+        self.spaceLable = QLabel()
+        self.main_ui.LoadLayout.addWidget(self.spaceLable, 10, 15, 0, 1)
+        self.loadButton = QPushButton()
+        self.loadButton.setText('加载')
+        self.main_ui.LoadLayout.addWidget(self.loadButton, 9, 16, 1, 1)
+
+        self.taskTable.setHorizontalHeaderLabels(['加载情况', '任务名'])
+        self.taskTable.horizontalHeader().setStretchLastSection(True)
+        self.taskTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.taskTable.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        # self.taskTable.setColumnWidth(0, self.main_ui.groupBox_3.width()*1.8)
 
         """ connect signal and slot """
         # signal and slot for main ui
@@ -75,11 +89,14 @@ class DebugManage:
         self.main_ui.IS_button.clicked.connect(self.intoInstructionView)
         self.main_ui.Reg_button.clicked.connect(self.intoRegisterView)
         self.main_ui.Mem_button.clicked.connect(self.intoMemoryView)
+
         self.main_ui.serviceButton.clicked.connect(self.showServer)
         self.main_ui.clientButton.clicked.connect(self.showClient)
         self.main_ui.importButton.clicked.connect(self.showImport)
         self.main_ui.exportButton.clicked.connect(self.showExport)
         self.main_ui.compareButton.clicked.connect(self.showCompare)
+
+        self.main_ui.compile_Button.clicked.connect(self.handleCompile)
 
     def intoMainView(self):
         self.main_ui.REF_widget.show()
@@ -136,8 +153,79 @@ class DebugManage:
     def showCompare(self):
         self.compareView.compare_ui.show()
 
+    def handleCompile(self):
+        # Temporarily used to load files
+        ELF_files, _ = QFileDialog.getOpenFileNames(self.main_ui,'选择文件')
+        
+        if len(ELF_files) == 0:
+            return
+
+        cur_rows = self.taskTable.rowCount()
+        rows_flag = 0
+        for file in ELF_files:
+            if rows_flag >= cur_rows:
+                self.taskTable.insertRow(cur_rows)
+                # add contents to the new row
+                # first column:check states   second column:file name
+                self.item_check = QTableWidgetItem()
+                self.item_check.setCheckState(QtCore.Qt.Unchecked)
+                self.item_check.setText('check')
+                self.taskTable.setItem(rows_flag, 0, self.item_check)
+                self.item_filename = QTableWidgetItem(file)
+                self.item_filename.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.taskTable.setItem(rows_flag, 1, self.item_filename)
+            else:
+                self.item_check = QTableWidgetItem()
+                self.item_check.setCheckState(QtCore.Qt.Unchecked)
+                self.item_check.setText('check')
+                self.taskTable.setItem(rows_flag, 0, self.item_check)
+                self.item_filename = QTableWidgetItem(file)
+                self.item_filename.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.taskTable.setItem(rows_flag, 1, self.item_filename)
+                rows_flag += 1
+
+class TableWidget(QTableWidget):
+    """
+    Overwrite QTableWidget
+    purpose: drag and drop table to trigger the dropEvent
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.viewport().setAcceptDrops(True)
+        self.setDragDropOverwriteMode(False)
+        self.setDropIndicatorShown(True)
+
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        # Select by unit of item
+        self.setSelectionBehavior(QAbstractItemView.SelectItems)
+        # Internal drag and drop is allowed
+        self.setDragDropMode(QAbstractItemView.InternalMove)
+
+    def dropEvent(self, event):
+        # get mouse released positon and it's corrospond QTableWidgetItem
+        item = self.itemAt(event.pos())
+        self.swapTwoRow(self.currentRow(), item.row())
+
+    def swapTwoRow(self, selectRow, targetRow):
+        # lists[0]: select row  lists[1]: target row
+        lists = [[] for _ in range(2)]
+        # preserve two rows's content
+        lists[0].append(self.item(selectRow, 1).text())
+        lists[1].append(self.item(targetRow, 1).text())
+        # set text
+        self.lists1_item = QTableWidgetItem(lists[1][0])
+        self.lists0_item = QTableWidgetItem(lists[0][0])
+        self.lists1_item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        self.lists0_item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        self.setItem(selectRow, 1, self.lists1_item)
+        self.setItem(targetRow, 1, self.lists0_item)
+
 if __name__ == "__main__":
-    with open('app.qss', encoding='utf-8') as f:
+    with open('view/app.qss', encoding='utf-8') as f:
         qss = f.read()
     app = QApplication(sys.argv)
     app.setStyleSheet(qss)

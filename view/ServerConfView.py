@@ -11,7 +11,7 @@ class ServerConfView:
 
     def __init__(self):
         # load server configuration
-        self.settings = QSettings("config.ini", QSettings.IniFormat)
+        self.settings = QSettings("view/config.ini", QSettings.IniFormat)
         self.remoteHost = self.settings.value("SERVER/RemoteHost")
         self.port = self.settings.value("SERVER/Port")
         self.hostname = self.settings.value("SERVER/Hostname")
