@@ -251,7 +251,7 @@
               <x>0</x>
               <y>0</y>
               <width>147</width>
-              <height>471</height>
+              <height>470</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,8,1">
@@ -517,7 +517,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>605</width>
-                 <height>471</height>
+                 <height>470</height>
                 </rect>
                </property>
                <widget class="QLabel" name="referencelabel">
@@ -590,7 +590,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>606</width>
-                 <height>471</height>
+                 <height>470</height>
                 </rect>
                </property>
                <widget class="QLabel" name="DUTlabel">
@@ -675,7 +675,7 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="compile_Button">
+             <widget class="QPushButton" name="compileButton">
               <property name="maximumSize">
                <size>
                 <width>60</width>
@@ -848,14 +848,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="route_Edit">
+             <widget class="QLineEdit" name="routeLineEdit">
               <property name="placeholderText">
                <string>&lt;快照路径&gt;</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="route_Button">
+             <widget class="QToolButton" name="routeButton">
               <property name="text">
                <string>选择路径</string>
               </property>
@@ -864,10 +864,21 @@
            </layout>
           </item>
           <item>
-           <widget class="QTextBrowser" name="textBrowser"/>
+           <widget class="QTextBrowser" name="textBrowser">
+            <property name="placeholderText">
+             <string>待定...</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="test_Button">
+           <widget class="QPlainTextEdit" name="cmdTextEdit">
+            <property name="placeholderText">
+             <string>请输入命令(注：一行一个命令)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="testButton">
             <property name="text">
              <string>开始测试</string>
             </property>
