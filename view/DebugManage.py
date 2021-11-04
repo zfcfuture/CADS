@@ -1,10 +1,15 @@
+import os
+from re import X
 import sys
+
+import paramiko
+from pexpect import *
 
 from PyQt5 import uic, QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QLabel, QComboBox, QPushButton, QTableWidget, QAbstractItemView,
-                             QTableWidgetItem, QHeaderView, QFileDialog)
+                             QTableWidgetItem, QHeaderView, QFileDialog, QMessageBox)
 
 from ServerConfView import ServerConfView
 from ClientConfView import ClientConfView
@@ -70,12 +75,15 @@ class DebugManage:
 
         # add load-table and load-button for main ui
         self.taskTable = TableWidget(3, 2)
-        self.main_ui.LoadLayout.addWidget(self.taskTable, 0, 0, 10, 15)
+        self.main_ui.LoadLayout.addWidget(self.taskTable, 0, 0, 10, 12)
         self.spaceLable = QLabel()
-        self.main_ui.LoadLayout.addWidget(self.spaceLable, 10, 15, 0, 1)
+        self.main_ui.LoadLayout.addWidget(self.spaceLable, 10, 12, 0, 1)
         self.loadButton = QPushButton()
         self.loadButton.setText('加载')
-        self.main_ui.LoadLayout.addWidget(self.loadButton, 9, 16, 1, 1)
+        self.main_ui.LoadLayout.addWidget(self.loadButton, 9, 13, 1, 1)
+        self.trunButton = QPushButton()
+        self.trunButton.setText('清空')
+        self.main_ui.LoadLayout.addWidget(self.trunButton, 8, 13, 1, 1)
 
         self.taskTable.setHorizontalHeaderLabels(['Check', '任务名'])
         self.taskTable.horizontalHeader().setStretchLastSection(True)
@@ -96,7 +104,10 @@ class DebugManage:
         self.main_ui.exportButton.clicked.connect(self.showExport)
         self.main_ui.compareButton.clicked.connect(self.showCompare)
 
-        self.main_ui.compile_Button.clicked.connect(self.handleCompile)
+        self.main_ui.compileButton.clicked.connect(self.handleCompile)
+        self.main_ui.testButton.clicked.connect(self.handleStartTest)
+        self.main_ui.routeButton.clicked.connect(self.handleRouteSelect)
+        self.trunButton.clicked.connect(self.handleTruncate)
         self.loadButton.clicked.connect(self.handleLoadELF)
 
     def intoMainView(self):
@@ -157,6 +168,12 @@ class DebugManage:
     def handleCompile(self):
         # Temporarily used to load local ELF-files to taskTable
         self.ELF_files_path, _ = QFileDialog.getOpenFileNames(self.main_ui,'选择文件')
+
+        # self.ELF_path = [os.path.split(x)[0] for x in self.ELF_files_path]
+        self.ELF_path_dict = {}
+        for i in range(len(self.ELF_files_path)):
+            key = i
+            self.ELF_path_dict[key] = os.path.split(self.ELF_files_path[i])[0]
         
         if len(self.ELF_files_path) == 0:
             return
@@ -189,11 +206,68 @@ class DebugManage:
 
     def handleLoadELF(self):
         """ load the checked ELF-file to host PC """
-        # print(self.serverView.remoteHost)
+        # prevent program crash
+        if self.taskTable.item(0, 1) == None: return
+        # get checked task from taskTable
+        checkedFile = []
+        for row in range(self.taskTable.rowCount()):
+            if self.taskTable.item(row, 0).checkState() != QtCore.Qt.Unchecked:
+                checkedFile.append(self.ELF_path_dict[row] + "/" + self.taskTable.item(row, 1).text())
+        # print(checkedFile)
+
+        # put the checked file to server
         if self.serverView.remoteHost == "HAPS01":
             ip = "10.12.208.30"
         
+        for path in checkedFile:
+            child = spawn("scp -P{port} {path} {hostname}@{hostIp}:~/zfc/ELF_files".format(port = self.serverView.port, 
+                           path = path, hostname = self.serverView.hostname, hostIp = ip))
+            child.expect('password:')
+            child.sendline(self.serverView.password)
+            child.read()
+            # print(path)
 
+        QMessageBox.information(self.main_ui, '提示', '任务加载成功!', QMessageBox.Yes)
+
+    def handleTruncate(self):
+        self.taskTable.clearContents()
+
+    def handleRouteSelect(self):
+        snapshotPath, _ = QFileDialog.getOpenFileName(self.main_ui,'选择文件')
+        self.main_ui.routeLineEdit.setText(snapshotPath)
+
+    def handleStartTest(self):
+        """ start execute task """
+        # use same snapshot to initialize REF and DUT
+        # print(self.main_ui.routeLineEdit.text())
+
+        # execute on REF(spike,gem5) and DUT(HAPS)
+        content = self.main_ui.cmdTextEdit.toPlainText()
+        cmdSTR = ""
+        for line in content.splitlines():
+            cmdSTR = cmdSTR + line + ";"
+        cmdSTR = cmdSTR[:-1]
+        if self.serverView.remoteHost == "HAPS01":
+            ip = "10.12.208.30"
+        res = self.serverCMD(ip, cmdSTR)
+        print(res)
+    
+    def serverCMD(self, ip, command):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        ssh.connect(hostname=ip, username=self.serverView.hostname, password=self.serverView.password)
+        _, stdout, _ = ssh.exec_command(command, get_pty=True)
+
+        res = ''
+        lines = stdout.readlines()
+        for line in lines:
+            res += line
+        # print(res)
+
+        ssh.close()
+        return res
+
+        
 class TableWidget(QTableWidget):
     """
     Overwrite QTableWidget
