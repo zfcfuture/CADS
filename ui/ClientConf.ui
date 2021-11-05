@@ -7,66 +7,25 @@
     <x>0</x>
     <y>0</y>
     <width>456</width>
-    <height>286</height>
+    <height>350</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>456</width>
-    <height>286</height>
+    <height>350</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>456</width>
-    <height>286</height>
+    <width>1000</width>
+    <height>1000</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="minimumSize">
-        <size>
-         <width>99</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>待测程序     </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEdit_1">
-       <property name="placeholderText">
-        <string>&lt;快照保存路径&gt;</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="selectButton_1">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>选择路径</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
@@ -88,21 +47,21 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_2">
+      <widget class="QLineEdit" name="lineEdit_1">
        <property name="placeholderText">
         <string>&lt;快照保存路径&gt;</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="selectButton_2">
+      <widget class="QPushButton" name="selectButton_1">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
         </font>
        </property>
        <property name="text">
-        <string>选择路径</string>
+        <string>配置路径</string>
        </property>
       </widget>
      </item>
@@ -129,21 +88,21 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_3">
+      <widget class="QLineEdit" name="lineEdit_2">
        <property name="placeholderText">
         <string>&lt;快照比较报告路径&gt;</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="selectButton_3">
+      <widget class="QPushButton" name="selectButton_2">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
         </font>
        </property>
        <property name="text">
-        <string>选择路径</string>
+        <string>配置路径</string>
        </property>
       </widget>
      </item>
@@ -170,9 +129,50 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_4">
+      <widget class="QLineEdit" name="lineEdit_3">
        <property name="placeholderText">
         <string>&lt;健康报告路径&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="selectButton_3">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>配置路径</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="minimumSize">
+        <size>
+         <width>99</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>ELF文件路径</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_4">
+       <property name="placeholderText">
+        <string>&lt;Reference可执行文件路径&gt;</string>
        </property>
       </widget>
      </item>
@@ -184,7 +184,42 @@
         </font>
        </property>
        <property name="text">
-        <string>选择路径</string>
+        <string>配置路径</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QLabel" name="label_6">
+       <property name="minimumSize">
+        <size>
+         <width>99</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>ELF文件路径</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_5">
+       <property name="minimumSize">
+        <size>
+         <width>245</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="placeholderText">
+        <string>&lt;DUT可执行文件路径&gt;</string>
        </property>
       </widget>
      </item>

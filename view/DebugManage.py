@@ -241,16 +241,30 @@ class DebugManage:
         # use same snapshot to initialize REF and DUT
         # print(self.main_ui.routeLineEdit.text())
 
-        # execute on REF(spike,gem5) and DUT(HAPS)
-        content = self.main_ui.cmdTextEdit.toPlainText()
-        cmdSTR = ""
-        for line in content.splitlines():
-            cmdSTR = cmdSTR + line + ";"
-        cmdSTR = cmdSTR[:-1]
-        if self.serverView.remoteHost == "HAPS01":
-            ip = "10.12.208.30"
-        res = self.serverCMD(ip, cmdSTR)
-        print(res)
+        DUT_PATH = self.clientView.settings.value("CLIENT/DUTELF")
+        REF_PATH = self.clientView.settings.value("CLIENT/RefELF")
+
+        # execute on DUT(HAPS)
+        if self.main_ui.cmdTextEdit.toPlainText() != "":
+            content = self.main_ui.cmdTextEdit.toPlainText()
+            cmdSTR = ""
+            for line in content.splitlines():
+                cmdSTR = cmdSTR + line + ";"
+            cmdSTR = cmdSTR[:-1]
+            if self.serverView.remoteHost == "HAPS01":
+                ip = "10.12.208.30"
+            res = self.serverCMD(ip, "cd {path};{cmd}".format(path=DUT_PATH, cmd=cmdSTR))
+            print(res)
+
+        # execute on REF(spike,gem5)
+        if self.main_ui.RefTextEdit.toPlainText() != "":
+            content = self.main_ui.RefTextEdit.toPlainText()
+            cmdSTR = ""
+            for line in content.splitlines():
+                cmdSTR = cmdSTR + line + ";"
+            cmdSTR = cmdSTR[:-1]
+            res2 = os.popen("cd {path};{cmd}".format(path=REF_PATH, cmd=cmdSTR)).read()
+            print(res2)
     
     def serverCMD(self, ip, command):
         ssh = paramiko.SSHClient()

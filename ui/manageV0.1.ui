@@ -251,7 +251,7 @@
               <x>0</x>
               <y>0</y>
               <width>147</width>
-              <height>470</height>
+              <height>468</height>
              </rect>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,8,1">
@@ -517,7 +517,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>605</width>
-                 <height>470</height>
+                 <height>468</height>
                 </rect>
                </property>
                <widget class="QLabel" name="referencelabel">
@@ -590,7 +590,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>606</width>
-                 <height>470</height>
+                 <height>468</height>
                 </rect>
                </property>
                <widget class="QLabel" name="DUTlabel">
@@ -832,12 +832,6 @@
           <string>测试</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
-          <property name="leftMargin">
-           <number>20</number>
-          </property>
-          <property name="rightMargin">
-           <number>20</number>
-          </property>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
@@ -871,11 +865,22 @@
            </widget>
           </item>
           <item>
-           <widget class="QPlainTextEdit" name="cmdTextEdit">
-            <property name="placeholderText">
-             <string>请输入命令(注：一行一个命令)</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_11">
+            <item>
+             <widget class="QPlainTextEdit" name="cmdTextEdit">
+              <property name="placeholderText">
+               <string>请输入命令(DUT)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPlainTextEdit" name="RefTextEdit">
+              <property name="placeholderText">
+               <string>请输入命令(Reference)</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QPushButton" name="testButton">
