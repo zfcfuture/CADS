@@ -4,6 +4,8 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
+from ClientConfView import ClientConfView
+
 class REGDUTsub(QMdiSubWindow):
 
     """
@@ -12,6 +14,9 @@ class REGDUTsub(QMdiSubWindow):
     def __init__(self):
 
         super().__init__()
+
+        self.clientView = ClientConfView()
+
         reg_dutlabel = QLabel()
         reg_dutlabel.setText('Display type:')
         reg_dutcombo = QComboBox()
@@ -23,16 +28,16 @@ class REGDUTsub(QMdiSubWindow):
         reg_dut_hwg = QWidget()
         reg_dut_hwg.setLayout(reg_dutHlayout)
 
-        reg_dut_tabWidget = QTabWidget()
-        dut_GPR_tab = QWidget()
-        dut_FPR_tab = QWidget()
-        dut_CSR_tab = QWidget()
-        reg_dut_tabWidget.addTab(dut_GPR_tab, "")
-        reg_dut_tabWidget.addTab(dut_FPR_tab, "")
-        reg_dut_tabWidget.addTab(dut_CSR_tab, "")
-        reg_dut_tabWidget.setTabText(0, 'GPR')
-        reg_dut_tabWidget.setTabText(1, 'FPR')
-        reg_dut_tabWidget.setTabText(2, 'CSR')
+        self.reg_dut_tabWidget = QTabWidget()
+        self.dut_GPR_tab = QWidget()
+        self.dut_FPR_tab = QWidget()
+        self.dut_CSR_tab = QWidget()
+        self.reg_dut_tabWidget.addTab(self.dut_GPR_tab, "")
+        self.reg_dut_tabWidget.addTab(self.dut_FPR_tab, "")
+        self.reg_dut_tabWidget.addTab(self.dut_CSR_tab, "")
+        self.reg_dut_tabWidget.setTabText(0, 'GPR')
+        self.reg_dut_tabWidget.setTabText(1, 'FPR')
+        self.reg_dut_tabWidget.setTabText(2, 'CSR')
         self.GPR_tabUI()
         self.FPR_tabUI()
         self.CSR_tabUI()
@@ -41,15 +46,24 @@ class REGDUTsub(QMdiSubWindow):
         reg_titlelable1.setText('DUT')
         reg_dutVlayout = QVBoxLayout()
         reg_dutVlayout.addWidget(reg_titlelable1)
-        reg_dutVlayout.addWidget(reg_dut_tabWidget)
+        reg_dutVlayout.addWidget(self.reg_dut_tabWidget)
         reg_dutVlayout.addWidget(reg_dut_hwg)
         reg_dut_vwg = QWidget()
         reg_dut_vwg.setLayout(reg_dutVlayout)
         self.setWidget(reg_dut_vwg)
 
     def GPR_tabUI(self):
-        
-        pass
+        # add a table for GPR_tabUI
+        layout = QVBoxLayout()
+        self.tableGPR = QTableWidget(32, 3)
+        self.tableGPR.setHorizontalHeaderLabels(["Name", "Alias", "Value"])
+        self.tableGPR.horizontalHeader().setStretchLastSection(True)
+        self.tableGPR.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.tableGPR.setColumnWidth(0, 50)
+        self.tableGPR.setColumnWidth(1, 50)
+        layout.addWidget(self.tableGPR)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.dut_GPR_tab.setLayout(layout)
 
     def FPR_tabUI(self):
         
@@ -58,6 +72,15 @@ class REGDUTsub(QMdiSubWindow):
     def CSR_tabUI(self):
         
         pass
+
+    def display(self):
+        # get data from file
+        displayFile = self.getData()
+
+    def getData(self):
+        oldPath = self.clientView.settings.value("CLIENT/Snapshot")
+        newPath = oldPath + "/DUT"
+        filePath = newPath + "/regsnapshot.txt"
 
 class REGREFsub(QMdiSubWindow):
 
@@ -77,16 +100,16 @@ class REGREFsub(QMdiSubWindow):
         reg_ref_hwg = QWidget()
         reg_ref_hwg.setLayout(reg_refHlayout)
 
-        reg_ref_tabWidget = QTabWidget()
-        ref_GPR_tab = QWidget()
-        ref_FPR_tab = QWidget()
-        ref_CSR_tab = QWidget()
-        reg_ref_tabWidget.addTab(ref_GPR_tab, "")
-        reg_ref_tabWidget.addTab(ref_FPR_tab, "")
-        reg_ref_tabWidget.addTab(ref_CSR_tab, "")
-        reg_ref_tabWidget.setTabText(0, 'GPR')
-        reg_ref_tabWidget.setTabText(1, 'FPR')
-        reg_ref_tabWidget.setTabText(2, 'CSR')
+        self.reg_ref_tabWidget = QTabWidget()
+        self.ref_GPR_tab = QWidget()
+        self.ref_FPR_tab = QWidget()
+        self.ref_CSR_tab = QWidget()
+        self.reg_ref_tabWidget.addTab(self.ref_GPR_tab, "")
+        self.reg_ref_tabWidget.addTab(self.ref_FPR_tab, "")
+        self.reg_ref_tabWidget.addTab(self.ref_CSR_tab, "")
+        self.reg_ref_tabWidget.setTabText(0, 'GPR')
+        self.reg_ref_tabWidget.setTabText(1, 'FPR')
+        self.reg_ref_tabWidget.setTabText(2, 'CSR')
         self.GPR_tabUI()
         self.FPR_tabUI()
         self.CSR_tabUI()
@@ -95,15 +118,24 @@ class REGREFsub(QMdiSubWindow):
         reg_titlelable2.setText('Reference')
         reg_refVlayout = QVBoxLayout()
         reg_refVlayout.addWidget(reg_titlelable2)
-        reg_refVlayout.addWidget(reg_ref_tabWidget)
+        reg_refVlayout.addWidget(self.reg_ref_tabWidget)
         reg_refVlayout.addWidget(reg_ref_hwg)
         reg_ref_vwg = QWidget()
         reg_ref_vwg.setLayout(reg_refVlayout)
         self.setWidget(reg_ref_vwg)
 
     def GPR_tabUI(self):
-        
-        pass
+        layout = QVBoxLayout()
+        self.tableGPR = QTableWidget(32, 3)
+        self.tableGPR.setHorizontalHeaderLabels(["Name", "Alias", "Value"])
+        self.tableGPR.horizontalHeader().setStretchLastSection(True)
+        # self.tableGPR.verticalHeader.setHidden(True)
+        self.tableGPR.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.tableGPR.setColumnWidth(0, 50)
+        self.tableGPR.setColumnWidth(1, 50)
+        layout.addWidget(self.tableGPR)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.ref_GPR_tab.setLayout(layout)
 
     def FPR_tabUI(self):
         

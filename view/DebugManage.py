@@ -25,28 +25,22 @@ class DebugManage(QMainWindow, Ui_MainWindow):
     """
 
     resized = QtCore.pyqtSignal()
-    def  __init__(self, parent=None):
+    
+    def __init__(self, parent=None):
         super(DebugManage, self).__init__(parent=parent)
-        #ui = Ui_MainWindow()
         self.setupUi(self)
 
         self.IS_button.clicked.connect(self.display)
         self.Reg_button.clicked.connect(self.display)
         self.Mem_button.clicked.connect(self.display)
         self.resized.connect(self.refresh)
+
         """ load views """
         self.serverView = ServerConfView()
         self.clientView = ClientConfView()
         self.importView = SnapshotImportView()
         self.exportView = SnapshotExportView()
         self.compareView = SnapshotCompareView()
-
-        '''self.ISREFView = ISREFView()
-        self.ISDUTView = ISDUTView()
-        self.RegREFView = RegisterREFView()
-        self.RegDUTView = RegisterDUTView()
-        self.MemREFView = MemoryREFView()
-        self.MemDUTView = MemoryDUTView()'''
 
         self.init()
         self.startFlag = 0
@@ -166,7 +160,7 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         self.mem_mdi.tileSubWindows()
     
     def display(self):
-        #设置当前可见的选项卡的索引
+        # set the index of the currently visible options
         sender = self.sender()
         if sender.text() == "Instructions":
             self.stack.setCurrentIndex(0)
