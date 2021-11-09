@@ -7,24 +7,33 @@ from pexpect import *
 from PyQt5 import uic, QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QApplication, QLabel, QComboBox, QPushButton, QTableWidget, QAbstractItemView,
-                             QTableWidgetItem, QHeaderView, QFileDialog, QMessageBox)
+from PyQt5.QtWidgets import *
 
 from ServerConfView import ServerConfView
 from ClientConfView import ClientConfView
 from SnapshotImportView import SnapshotImportView
 from SnapshotExportView import SnapshotExportView
 from SnapshotCompareView import SnapshotCompareView
-from InstructionsView import ISREFView, ISDUTView
-from RegisterView import RegisterREFView, RegisterDUTView
-from MemoryView import MemoryREFView, MemoryDUTView
+from InstructionsMdi import ISDUTsub, ISREFsub
+from RegisterMdi import REGDUTsub, REGREFsub
+from MemoryMdi import MEMDUTsub, MEMREFsub
+from manage import Ui_MainWindow
 
-class DebugManage:
+class DebugManage(QMainWindow, Ui_MainWindow):
     """
     CPU Auto Debug System GUI
     """
 
-    def __init__(self):
+    resized = QtCore.pyqtSignal()
+    def  __init__(self, parent=None):
+        super(DebugManage, self).__init__(parent=parent)
+        #ui = Ui_MainWindow()
+        self.setupUi(self)
+
+        self.IS_button.clicked.connect(self.display)
+        self.Reg_button.clicked.connect(self.display)
+        self.Mem_button.clicked.connect(self.display)
+        self.resized.connect(self.refresh)
         """ load views """
         self.serverView = ServerConfView()
         self.clientView = ClientConfView()
@@ -32,12 +41,12 @@ class DebugManage:
         self.exportView = SnapshotExportView()
         self.compareView = SnapshotCompareView()
 
-        self.ISREFView = ISREFView()
+        '''self.ISREFView = ISREFView()
         self.ISDUTView = ISDUTView()
         self.RegREFView = RegisterREFView()
         self.RegDUTView = RegisterDUTView()
         self.MemREFView = MemoryREFView()
-        self.MemDUTView = MemoryDUTView()
+        self.MemDUTView = MemoryDUTView()'''
 
         self.init()
         self.startFlag = 0
@@ -45,45 +54,52 @@ class DebugManage:
     def init(self):
         """ load all UI """
         # load main ui
-        self.main_ui = uic.loadUi("ui/manageV0.1.ui")
-        self.main_ui.setWindowTitle("CPU Auto Debug System")
-        self.main_ui.move(250, 150)
+        self.setWindowTitle("CPU Auto Debug System")
+        self.move(250, 150)
 
         """ add widget for main ui """
-        # add widget for reference and DUT [Instruction, Register, Memory]
-        self.main_ui.REF_layout.addWidget(self.ISREFView.ISREF_ui)
-        self.main_ui.DUT_layout.addWidget(self.ISDUTView.ISDUT_ui)
-        self.main_ui.REF_layout.addWidget(self.RegREFView.RegREF_ui)
-        self.main_ui.DUT_layout.addWidget(self.RegDUTView.RegDUT_ui)
-        self.main_ui.REF_layout.addWidget(self.MemREFView.MemREF_ui)
-        self.main_ui.DUT_layout.addWidget(self.MemDUTView.MemDUT_ui)
+        #add mdiArea and subwindow
+        self.is_mdi = QMdiArea()
+        self.reg_mdi = QMdiArea()
+        self.mem_mdi = QMdiArea()
+
+        self.is_mdiUI()
+        self.reg_mdiUI()
+        self.mem_mdiUI()
+
+        self.stack=QStackedWidget()
+
+        self.stack.addWidget(self.is_mdi)
+        self.stack.addWidget(self.reg_mdi)
+        self.stack.addWidget(self.mem_mdi)
+        self.mdiLayout.addWidget(self.stack)
 
         # add widget for statusbar
-        self.main_ui.link_status = QLabel('{:<40}'.format('链接状态：'))
-        self.main_ui.run_status = QLabel('{:<40}'.format('运行状态：'))
-        self.main_ui.health_status = QLabel('{:<40}'.format('当前健康状态：'))
-        self.main_ui.harttext_status = QLabel('{:<0}'.format('当前hart：'))
-        self.main_ui.hart_status = QComboBox()
-        self.main_ui.pc_status = QLabel('{:<40}'.format('PC：'))
-        self.main_ui.hart_status.addItems(['hart0'])
-        self.main_ui.statusbar.addWidget(self.main_ui.link_status, 1)
-        self.main_ui.statusbar.addWidget(self.main_ui.run_status, 1)
-        self.main_ui.statusbar.addWidget(self.main_ui.health_status, 1)
-        self.main_ui.statusbar.addWidget(self.main_ui.harttext_status)
-        self.main_ui.statusbar.addWidget(self.main_ui.hart_status)
-        self.main_ui.statusbar.addWidget(self.main_ui.pc_status, 1)
+        self.link_status = QLabel('{:<40}'.format('连接状态：'))
+        self.run_status = QLabel('{:<40}'.format('运行状态：'))
+        self.health_status = QLabel('{:<40}'.format('当前健康状态：'))
+        self.harttext_status = QLabel('{:<0}'.format('当前hart：'))
+        self.hart_status = QComboBox()
+        self.pc_status = QLabel('{:<40}'.format('PC：'))
+        self.hart_status.addItems(['hart0'])
+        self.statusbar.addWidget(self.link_status, 1)
+        self.statusbar.addWidget(self.run_status, 1)
+        self.statusbar.addWidget(self.health_status, 1)
+        self.statusbar.addWidget(self.harttext_status)
+        self.statusbar.addWidget(self.hart_status)
+        self.statusbar.addWidget(self.pc_status, 1)
 
         # add load-table and load-button for main ui
         self.taskTable = TableWidget(3, 2)
-        self.main_ui.LoadLayout.addWidget(self.taskTable, 0, 0, 10, 12)
+        self.LoadLayout.addWidget(self.taskTable, 0, 0, 10, 12)
         self.spaceLable = QLabel()
-        self.main_ui.LoadLayout.addWidget(self.spaceLable, 10, 12, 0, 1)
+        self.LoadLayout.addWidget(self.spaceLable, 10, 12, 0, 1)
         self.loadButton = QPushButton()
         self.loadButton.setText('加载')
-        self.main_ui.LoadLayout.addWidget(self.loadButton, 9, 13, 1, 1)
+        self.LoadLayout.addWidget(self.loadButton, 9, 13, 1, 1)
         self.trunButton = QPushButton()
         self.trunButton.setText('清空')
-        self.main_ui.LoadLayout.addWidget(self.trunButton, 8, 13, 1, 1)
+        self.LoadLayout.addWidget(self.trunButton, 8, 13, 1, 1)
 
         self.taskTable.setHorizontalHeaderLabels(['Check', '任务名'])
         self.taskTable.horizontalHeader().setStretchLastSection(True)
@@ -93,62 +109,71 @@ class DebugManage:
 
         """ connect signal and slot """
         # signal and slot for main ui
-        self.main_ui.Main_button.clicked.connect(self.intoMainView)
-        self.main_ui.IS_button.clicked.connect(self.intoInstructionView)
-        self.main_ui.Reg_button.clicked.connect(self.intoRegisterView)
-        self.main_ui.Mem_button.clicked.connect(self.intoMemoryView)
+        self.IS_button.clicked.connect(self.display)
+        self.Reg_button.clicked.connect(self.display)
+        self.Mem_button.clicked.connect(self.display)
+        
+        self.serviceButton.clicked.connect(self.showServer)
+        self.clientButton.clicked.connect(self.showClient)
+        self.importButton.clicked.connect(self.showImport)
+        self.exportButton.clicked.connect(self.showExport)
+        self.compareButton.clicked.connect(self.showCompare)
 
-        self.main_ui.serviceButton.clicked.connect(self.showServer)
-        self.main_ui.clientButton.clicked.connect(self.showClient)
-        self.main_ui.importButton.clicked.connect(self.showImport)
-        self.main_ui.exportButton.clicked.connect(self.showExport)
-        self.main_ui.compareButton.clicked.connect(self.showCompare)
-
-        self.main_ui.compileButton.clicked.connect(self.handleCompile)
-        self.main_ui.testButton.clicked.connect(self.handleStartTest)
-        self.main_ui.routeButton.clicked.connect(self.handleRouteSelect)
+        self.compileButton.clicked.connect(self.handleCompile)
+        self.testButton.clicked.connect(self.handleStartTest)
+        self.routeButton.clicked.connect(self.handleRouteSelect)
         self.trunButton.clicked.connect(self.handleTruncate)
         self.loadButton.clicked.connect(self.handleLoadELF)
+        self.resized.connect(self.refresh)
 
-    def intoMainView(self):
-        self.main_ui.REF_widget.show()
-        self.main_ui.DUT_widget.show()
-        self.ISREFView.ISREF_ui.hide()
-        self.ISDUTView.ISDUT_ui.hide()
-        self.RegREFView.RegREF_ui.hide()
-        self.RegDUTView.RegDUT_ui.hide()
-        self.MemREFView.MemREF_ui.hide()
-        self.MemDUTView.MemDUT_ui.hide()
+    def is_mdiUI(self):
 
-    def intoInstructionView(self):
-        self.ISREFView.ISREF_ui.show()
-        self.ISDUTView.ISDUT_ui.show()
-        self.RegREFView.RegREF_ui.hide()
-        self.RegDUTView.RegDUT_ui.hide()
-        self.MemREFView.MemREF_ui.hide()
-        self.MemDUTView.MemDUT_ui.hide()
-        self.main_ui.REF_widget.hide()
-        self.main_ui.DUT_widget.hide()
+        isDUT_sub = ISDUTsub()
+        self.is_mdi.addSubWindow(isDUT_sub)
 
-    def intoRegisterView(self):
-        self.RegREFView.RegREF_ui.show()
-        self.RegDUTView.RegDUT_ui.show()
-        self.ISREFView.ISREF_ui.hide()
-        self.ISDUTView.ISDUT_ui.hide()
-        self.MemREFView.MemREF_ui.hide()
-        self.MemDUTView.MemDUT_ui.hide()
-        self.main_ui.REF_widget.hide()
-        self.main_ui.DUT_widget.hide()
+        isREF_sub = ISREFsub()
+        self.is_mdi.addSubWindow(isREF_sub)
 
-    def intoMemoryView(self):
-        self.MemREFView.MemREF_ui.show()
-        self.MemDUTView.MemDUT_ui.show()
-        self.RegREFView.RegREF_ui.hide()
-        self.RegDUTView.RegDUT_ui.hide()
-        self.ISREFView.ISREF_ui.hide()
-        self.ISDUTView.ISDUT_ui.hide()
-        self.main_ui.REF_widget.hide()
-        self.main_ui.DUT_widget.hide()
+        isREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        isDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        
+        self.is_mdi.tileSubWindows()
+    
+    def reg_mdiUI(self):
+
+        regDUT_sub = REGDUTsub()
+        self.reg_mdi.addSubWindow(regDUT_sub)
+        
+        regREF_sub = REGREFsub()
+        self.reg_mdi.addSubWindow(regREF_sub)
+
+        regREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        regDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        
+        self.reg_mdi.tileSubWindows()
+
+    def mem_mdiUI(self):
+        
+        memDUT_sub = MEMDUTsub()
+        self.mem_mdi.addSubWindow(memDUT_sub)
+
+        memREF_sub = MEMREFsub()
+        self.mem_mdi.addSubWindow(memREF_sub)
+
+        memREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        memDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+
+        self.mem_mdi.tileSubWindows()
+    
+    def display(self):
+        #设置当前可见的选项卡的索引
+        sender = self.sender()
+        if sender.text() == "Instructions":
+            self.stack.setCurrentIndex(0)
+        elif sender.text() == "Registers":
+            self.stack.setCurrentIndex(1)
+        elif sender.text() == "Mem Data":
+            self.stack.setCurrentIndex(2)
 
     def showServer(self):
         self.serverView.server_ui.show()
@@ -167,7 +192,7 @@ class DebugManage:
 
     def handleCompile(self):
         # Temporarily used to load local ELF-files to taskTable
-        self.ELF_files_path, _ = QFileDialog.getOpenFileNames(self.main_ui,'选择文件')
+        self.ELF_files_path, _ = QFileDialog.getOpenFileNames(self,'选择文件')
 
         # self.ELF_path = [os.path.split(x)[0] for x in self.ELF_files_path]
         self.ELF_path_dict = {}
@@ -233,14 +258,14 @@ class DebugManage:
             
             os.popen("cp {sourcePath} {targetPath}".format(sourcePath=path, targetPath=refPATH))
 
-        QMessageBox.information(self.main_ui, '提示', '任务加载成功!', QMessageBox.Yes)
+        QMessageBox.information(self, '提示', '任务加载成功!', QMessageBox.Yes)
 
     def handleTruncate(self):
         self.taskTable.clearContents()
 
     def handleRouteSelect(self):
-        snapshotPath, _ = QFileDialog.getOpenFileName(self.main_ui,'选择文件')
-        self.main_ui.routeLineEdit.setText(snapshotPath)
+        snapshotPath, _ = QFileDialog.getOpenFileName(self,'选择文件')
+        self.routeLineEdit.setText(snapshotPath)
 
     def handleStartTest(self):
         """ start execute task """
@@ -251,8 +276,8 @@ class DebugManage:
         entryPath = os.getcwd() + "/backend"
 
         # execute on DUT(HAPS)
-        if self.main_ui.cmdTextEdit.toPlainText() != "":
-            content = self.main_ui.cmdTextEdit.toPlainText()
+        if self.cmdTextEdit.toPlainText() != "":
+            content = self.cmdTextEdit.toPlainText()
             cmdSTR = ""
             for line in content.splitlines():
                 cmdSTR = cmdSTR + line + ";"
@@ -264,8 +289,8 @@ class DebugManage:
             print(res)
 
         # execute on REF(spike,gem5)
-        if self.main_ui.RefTextEdit.toPlainText() != "":
-            content = self.main_ui.RefTextEdit.toPlainText()
+        if self.RefTextEdit.toPlainText() != "":
+            content = self.RefTextEdit.toPlainText()
             cmdSTR = ""
             for line in content.splitlines():
                 cmdSTR = cmdSTR + line + ";"
@@ -289,7 +314,15 @@ class DebugManage:
 
         ssh.close()
         return res
+    def refresh(self):
+        #print('refresh')
+        self.is_mdi.tileSubWindows()
+        self.reg_mdi.tileSubWindows()
+        self.mem_mdi.tileSubWindows()
 
+    def resizeEvent(self, event):
+        self.resized.emit()
+        return super(DebugManage, self).resizeEvent(event)
         
 class TableWidget(QTableWidget):
     """
@@ -337,6 +370,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyleSheet(qss)
     gui = DebugManage()
-    gui.main_ui.setWindowIcon(QIcon('imgs/block.png'))
-    gui.main_ui.show()
+    gui.setWindowIcon(QIcon('imgs/block.png'))
+    gui.show()
     sys.exit(app.exec_())
