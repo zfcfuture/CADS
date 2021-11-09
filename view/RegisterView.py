@@ -12,6 +12,13 @@ class RegisterREFView:
         self.RegREF_ui = uic.loadUi("ui/Reg_REF.ui")
         self.RegREF_ui.hide()
 
+    def display(self):
+        # get data
+        regData = []
+
+    def getData(self):
+        pass
+
 
 class RegisterDUTView:
     """
@@ -21,3 +28,10 @@ class RegisterDUTView:
     def __init__(self):
         self.RegDUT_ui = uic.loadUi("ui/Reg_DUT.ui")
         self.RegDUT_ui.hide()
+
+    def display(self):
+        # get data
+        regData = []
+
+    def getData(self):
+        pass

@@ -1,5 +1,4 @@
 import os
-from re import X
 import sys
 
 import paramiko
@@ -41,6 +40,7 @@ class DebugManage:
         self.MemDUTView = MemoryDUTView()
 
         self.init()
+        self.startFlag = 0
 
     def init(self):
         """ load all UI """
@@ -211,21 +211,27 @@ class DebugManage:
         # get checked task from taskTable
         checkedFile = []
         for row in range(self.taskTable.rowCount()):
-            if self.taskTable.item(row, 0).checkState() != QtCore.Qt.Unchecked:
+            if self.taskTable.item(row, 1) == None: pass
+            elif self.taskTable.item(row, 0).checkState() != QtCore.Qt.Unchecked:
                 checkedFile.append(self.ELF_path_dict[row] + "/" + self.taskTable.item(row, 1).text())
         # print(checkedFile)
 
-        # put the checked file to server
+        # get ELF path from settings
+        dutPATH = self.clientView.settings.value("CLIENT/DUTELF")
+        refPATH = self.clientView.settings.value("CLIENT/RefELF")
+
+        # put the checked file to server and client
         if self.serverView.remoteHost == "HAPS01":
             ip = "10.12.208.30"
         
         for path in checkedFile:
-            child = spawn("scp -P{port} {path} {hostname}@{hostIp}:~/zfc/ELF_files".format(port = self.serverView.port, 
-                           path = path, hostname = self.serverView.hostname, hostIp = ip))
+            child = spawn("scp -P{port} {localPath} {hostname}@{hostIp}:{remotePath}".format(port = self.serverView.port, 
+                           localPath = path, hostname = self.serverView.hostname, hostIp = ip, remotePath=dutPATH))
             child.expect('password:')
             child.sendline(self.serverView.password)
             child.read()
-            # print(path)
+            
+            os.popen("cp {sourcePath} {targetPath}".format(sourcePath=path, targetPath=refPATH))
 
         QMessageBox.information(self.main_ui, '提示', '任务加载成功!', QMessageBox.Yes)
 
@@ -238,11 +244,11 @@ class DebugManage:
 
     def handleStartTest(self):
         """ start execute task """
+        self.startFlag = 0
         # use same snapshot to initialize REF and DUT
         # print(self.main_ui.routeLineEdit.text())
 
-        DUT_PATH = self.clientView.settings.value("CLIENT/DUTELF")
-        REF_PATH = self.clientView.settings.value("CLIENT/RefELF")
+        entryPath = os.getcwd() + "/backend"
 
         # execute on DUT(HAPS)
         if self.main_ui.cmdTextEdit.toPlainText() != "":
@@ -251,9 +257,10 @@ class DebugManage:
             for line in content.splitlines():
                 cmdSTR = cmdSTR + line + ";"
             cmdSTR = cmdSTR[:-1]
-            if self.serverView.remoteHost == "HAPS01":
-                ip = "10.12.208.30"
-            res = self.serverCMD(ip, "cd {path};{cmd}".format(path=DUT_PATH, cmd=cmdSTR))
+            # if self.serverView.remoteHost == "HAPS01":
+            #     ip = "10.12.208.30"
+            # res = self.serverCMD(ip, "cd {path};{cmd}".format(path=DUT_PATH, cmd=cmdSTR))
+            res = os.popen("cd {path};{cmd}".format(path=entryPath, cmd=cmdSTR)).read()
             print(res)
 
         # execute on REF(spike,gem5)
@@ -263,8 +270,10 @@ class DebugManage:
             for line in content.splitlines():
                 cmdSTR = cmdSTR + line + ";"
             cmdSTR = cmdSTR[:-1]
-            res2 = os.popen("cd {path};{cmd}".format(path=REF_PATH, cmd=cmdSTR)).read()
+            res2 = os.popen("cd {path};{cmd}".format(path=entryPath, cmd=cmdSTR)).read()
             print(res2)
+
+        self.startFlag = 1
     
     def serverCMD(self, ip, command):
         ssh = paramiko.SSHClient()

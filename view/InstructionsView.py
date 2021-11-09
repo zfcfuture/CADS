@@ -12,6 +12,12 @@ class ISREFView:
         self.ISREF_ui = uic.loadUi("ui/IS_REF.ui")
         self.ISREF_ui.hide()
 
+    def display(self):
+        pass
+
+    def loadData(self, line):
+        print(line)
+
 
 class ISDUTView:
     """
