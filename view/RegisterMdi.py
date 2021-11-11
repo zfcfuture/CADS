@@ -1,4 +1,5 @@
 import sys
+import re
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import *
@@ -55,7 +56,7 @@ class REGDUTsub(QMdiSubWindow):
     def GPR_tabUI(self):
         # add a table for GPR_tabUI
         layout = QVBoxLayout()
-        self.tableGPR = QTableWidget(32, 3)
+        self.tableGPR = QTableWidget(33, 3)
         self.tableGPR.setHorizontalHeaderLabels(["Name", "Alias", "Value"])
         self.tableGPR.horizontalHeader().setStretchLastSection(True)
         self.tableGPR.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
@@ -64,6 +65,7 @@ class REGDUTsub(QMdiSubWindow):
         layout.addWidget(self.tableGPR)
         layout.setContentsMargins(0, 0, 0, 0)
         self.dut_GPR_tab.setLayout(layout)
+        self.tableGPR.verticalHeader().setVisible(False)
 
     def FPR_tabUI(self):
         
@@ -75,12 +77,36 @@ class REGDUTsub(QMdiSubWindow):
 
     def display(self):
         # get data from file
-        displayFile = self.getData()
+        fileContent = self.getData()
+
+        # put data to tableGPR
+        GPRName = ["x{i}".format(i=i+1) for i in range(31)]
+        GPRName.append("pc")
+        for i in range(32):
+            self.item_name = QTableWidgetItem(GPRName[i])
+            self.item_name.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableGPR.setItem(i, 0, self.item_name)
+            self.item_Alias = QTableWidgetItem(fileContent[i][0])
+            self.item_Alias.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableGPR.setItem(i, 1, self.item_Alias)
+            self.item_Value = QTableWidgetItem(fileContent[i][1])
+            self.item_Value.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableGPR.setItem(i, 2, self.item_Value)
+            
 
     def getData(self):
-        oldPath = self.clientView.settings.value("CLIENT/Snapshot")
-        newPath = oldPath + "/DUT"
-        filePath = newPath + "/regsnapshot.txt"
+        healthPath = self.clientView.settings.value("CLIENT/DUT_Health")
+        filePath = healthPath + "/cpu_status_haps"
+
+        with open(filePath) as f:
+            content = f.read()
+        content = content.split("\n")
+        # GPRList = []
+        for i in range(33):
+            # GPRList[i] = re.split(" |\t|\n|\r", content[i])
+            content[i] = list(filter(None, re.split(" |\t|\n|\r", content[i])))
+
+        return content
 
 class REGREFsub(QMdiSubWindow):
 
@@ -88,7 +114,11 @@ class REGREFsub(QMdiSubWindow):
     Reference Registers View
     """
     def __init__(self):
+
         super().__init__()
+
+        self.clientView = ClientConfView()
+
         reg_reflabel = QLabel()
         reg_reflabel.setText('Display type:')
         reg_refcombo = QComboBox()
@@ -136,6 +166,7 @@ class REGREFsub(QMdiSubWindow):
         layout.addWidget(self.tableGPR)
         layout.setContentsMargins(0, 0, 0, 0)
         self.ref_GPR_tab.setLayout(layout)
+        self.tableGPR.verticalHeader().setVisible(False)
 
     def FPR_tabUI(self):
         
@@ -144,3 +175,36 @@ class REGREFsub(QMdiSubWindow):
     def CSR_tabUI(self):
         
         pass
+
+    def display(self):
+        # get data from file
+        fileContent = self.getData()
+
+        # put data to tableGPR
+        GPRName = ["x{i}".format(i=i+1) for i in range(31)]
+        GPRName.append("pc")
+        for i in range(32):
+            self.item_name = QTableWidgetItem(GPRName[i])
+            self.item_name.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableGPR.setItem(i, 0, self.item_name)
+            self.item_Alias = QTableWidgetItem(fileContent[i][0])
+            self.item_Alias.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableGPR.setItem(i, 1, self.item_Alias)
+            self.item_Value = QTableWidgetItem(fileContent[i][1])
+            self.item_Value.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableGPR.setItem(i, 2, self.item_Value)
+            
+
+    def getData(self):
+        healthPath = self.clientView.settings.value("CLIENT/REF_Health")
+        filePath = healthPath + "/cpu_status_spike"
+
+        with open(filePath) as f:
+            content = f.read()
+        content = content.split("\n")
+        # GPRList = []
+        for i in range(33):
+            # GPRList[i] = re.split(" |\t|\n|\r", content[i])
+            content[i] = list(filter(None, re.split(" |\t|\n|\r", content[i])))
+
+        return content

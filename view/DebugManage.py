@@ -1,8 +1,13 @@
 import os
 import sys
+import time
 
 import paramiko
 from pexpect import *
+
+from watchdog.observers import Observer
+from watchdog.events import *
+from threading import Thread
 
 from PyQt5 import uic, QtCore
 from PyQt5.QtCore import Qt
@@ -27,13 +32,9 @@ class DebugManage(QMainWindow, Ui_MainWindow):
     resized = QtCore.pyqtSignal()
     
     def __init__(self, parent=None):
+
         super(DebugManage, self).__init__(parent=parent)
         self.setupUi(self)
-
-        self.IS_button.clicked.connect(self.display)
-        self.Reg_button.clicked.connect(self.display)
-        self.Mem_button.clicked.connect(self.display)
-        self.resized.connect(self.refresh)
 
         """ load views """
         self.serverView = ServerConfView()
@@ -43,7 +44,6 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         self.compareView = SnapshotCompareView()
 
         self.init()
-        self.startFlag = 0
 
     def init(self):
         """ load all UI """
@@ -135,14 +135,14 @@ class DebugManage(QMainWindow, Ui_MainWindow):
     
     def reg_mdiUI(self):
 
-        regDUT_sub = REGDUTsub()
-        self.reg_mdi.addSubWindow(regDUT_sub)
+        self.regDUT_sub = REGDUTsub()
+        self.reg_mdi.addSubWindow(self.regDUT_sub)
         
-        regREF_sub = REGREFsub()
-        self.reg_mdi.addSubWindow(regREF_sub)
+        self.regREF_sub = REGREFsub()
+        self.reg_mdi.addSubWindow(self.regREF_sub)
 
-        regREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
-        regDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        self.regREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        self.regDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
         
         self.reg_mdi.tileSubWindows()
 
@@ -240,17 +240,25 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         refPATH = self.clientView.settings.value("CLIENT/RefELF")
 
         # put the checked file to server and client
-        if self.serverView.remoteHost == "HAPS01":
-            ip = "10.12.208.30"
+        # if self.serverView.remoteHost == "HAPS01":
+        #     ip = "10.12.208.30"
+        refIP = self.serverView.ref_remoteHost
+        dutIP = self.serverView.dut_remoteHost
+        print(refIP, dutIP)
         
         for path in checkedFile:
-            child = spawn("scp -P{port} {localPath} {hostname}@{hostIp}:{remotePath}".format(port = self.serverView.port, 
-                           localPath = path, hostname = self.serverView.hostname, hostIp = ip, remotePath=dutPATH))
-            child.expect('password:')
-            child.sendline(self.serverView.password)
-            child.read()
+            # put the checked file to server
+            ref_child = spawn("scp -P{port} {localPath} {hostname}@{hostIp}:{remotePath}".format(port = self.serverView.ref_port, 
+                           localPath = path, hostname = self.serverView.ref_hostname, hostIp = refIP, remotePath=refPATH))
+            ref_child.expect('password:')
+            ref_child.sendline(self.serverView.ref_password)
+            ref_child.read()
             
-            os.popen("cp {sourcePath} {targetPath}".format(sourcePath=path, targetPath=refPATH))
+            dut_child = spawn("scp -P{port} {localPath} {hostname}@{hostIp}:{remotePath}".format(port = self.serverView.dut_port, 
+                           localPath = path, hostname = self.serverView.dut_hostname, hostIp = dutIP, remotePath=dutPATH))
+            dut_child.expect('password:')
+            dut_child.sendline(self.serverView.dut_password)
+            dut_child.read()
 
         QMessageBox.information(self, '提示', '任务加载成功!', QMessageBox.Yes)
 
@@ -263,7 +271,6 @@ class DebugManage(QMainWindow, Ui_MainWindow):
 
     def handleStartTest(self):
         """ start execute task """
-        self.startFlag = 0
         # use same snapshot to initialize REF and DUT
         # print(self.main_ui.routeLineEdit.text())
 
@@ -292,8 +299,21 @@ class DebugManage(QMainWindow, Ui_MainWindow):
             res2 = os.popen("cd {path};{cmd}".format(path=entryPath, cmd=cmdSTR)).read()
             print(res2)
 
-        self.startFlag = 1
-    
+        # display information from files(Instruction, Register, Memory)
+        p = Thread(target=self.handleWatchdog)
+        p.start()
+
+    def handleWatchdog(self):
+        self.observer = Observer()
+        event_handler = FileEventHandler()
+        refHealth = self.clientView.ref_healthPath
+        dutHealth = self.clientView.dut_healthPath
+        dirs = [refHealth, dutHealth]
+        for dir in dirs:
+            self.observer.schedule(event_handler, dir, True)
+        self.observer.start()
+        self.observer.join()
+
     def serverCMD(self, ip, command):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
@@ -308,6 +328,7 @@ class DebugManage(QMainWindow, Ui_MainWindow):
 
         ssh.close()
         return res
+
     def refresh(self):
         #print('refresh')
         self.is_mdi.tileSubWindows()
@@ -357,6 +378,43 @@ class TableWidget(QTableWidget):
         self.lists0_item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         self.setItem(selectRow, 1, self.lists1_item)
         self.setItem(targetRow, 1, self.lists0_item)
+
+class FileEventHandler(FileSystemEventHandler):
+    def __init__(self):
+        FileSystemEventHandler.__init__(self)
+        self.clientView = ClientConfView()
+        self.registerREF = REGREFsub()
+        self.registerDUT = REGDUTsub()
+
+    def on_moved(self, event):
+        if event.is_directory:
+            print("directory moved from {0} to {1}".format(
+                event.src_path, event.dest_path))
+        else:
+            print("file moved from {0} to {1}".format(
+                event.src_path, event.dest_path))
+
+    def on_created(self, event):
+        if event.is_directory:
+            print("directory created:{0}".format(event.src_path))
+        else:
+            print("file created:{0}".format(event.src_path))
+
+    def on_deleted(self, event):
+        if event.is_directory:
+            print("directory deleted:{0}".format(event.src_path))
+        else:
+            print("file deleted:{0}".format(event.src_path))
+
+    def on_modified(self, event):
+        if event.is_directory:
+            print("directory modified:{0}".format(event.src_path))
+        else:
+            # print("file modified:{0}".format(event.src_path))
+            if event.src_path == self.clientView.ref_healthPath:
+                self.registerREF.display()
+            elif event.src_path == self.clientView.dut_healthPath:
+                self.registerDUT.display()
 
 if __name__ == "__main__":
     with open('view/app.qss', encoding='utf-8') as f:
