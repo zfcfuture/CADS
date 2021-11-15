@@ -353,11 +353,9 @@ class DebugManage(QMainWindow, Ui_MainWindow):
             
             # compare health(REF & DUT) and send flag
             if lastModifyTime_1 != firstTime_1 and lastModifyTime_2 != firstTime_2:
-                pass
-            self.sendFlag()
+                self.sendFlag()
 
             # reference register display
-            
             if firstTime_1 != lastModifyTime_1:
                 firstTime_1 = lastModifyTime_1
                 self.regREF_sub.display()
@@ -414,7 +412,6 @@ class DebugManage(QMainWindow, Ui_MainWindow):
                     minstret = rowList[1]
 
         return pc, minstret
-        
 
     def serverCMD(self, ip, user, passwd, command):
         ssh = paramiko.SSHClient()

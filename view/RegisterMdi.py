@@ -4,6 +4,7 @@ import re
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+from paramiko import file
 
 from ClientConfView import ClientConfView
 
@@ -86,7 +87,7 @@ class REGDUTsub(QMdiSubWindow):
     def GPR_tabUI(self):
         # add a table for GPR_tabUI
         layout = QVBoxLayout()
-        self.tableGPR = QTableWidget(33, 3)
+        self.tableGPR = QTableWidget(32, 3)
         self.tableGPR.setHorizontalHeaderLabels(["Name", "Alias", "Value"])
         self.tableGPR.horizontalHeader().setStretchLastSection(True)
         self.tableGPR.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
@@ -112,8 +113,17 @@ class REGDUTsub(QMdiSubWindow):
         self.tableFPR.verticalHeader().setVisible(False)
 
     def CSR_tabUI(self):
-        
-        pass
+        layout = QVBoxLayout()
+        self.tableCSR = QTableWidget(61, 2)
+        self.tableCSR.setHorizontalHeaderLabels(["Name", "Value"])
+        self.tableCSR.horizontalHeader().setStretchLastSection(True)
+        # self.tableCSR.verticalHeader.setHidden(True)
+        self.tableCSR.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.tableCSR.setColumnWidth(0, 100)
+        layout.addWidget(self.tableCSR)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.dut_CSR_tab.setLayout(layout)
+        self.tableCSR.verticalHeader().setVisible(False)
 
     def display(self):
         # get data from file
@@ -132,7 +142,32 @@ class REGDUTsub(QMdiSubWindow):
             self.item_Value = QTableWidgetItem(fileContent[i][1])
             self.item_Value.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
             self.tableGPR.setItem(i, 2, self.item_Value)
-            
+
+        # put data to tableFPR
+        FPRName = ["f{i}".format(i=i) for i in range(32)]
+        fpr_name = [fileContent[i][0] for i in range(33, 65)]
+        fpr_data = [fileContent[i][-1][:-1] for i in range(33, 65)]
+        for i in range(32):
+            self.item_name_FPR = QTableWidgetItem(FPRName[i])
+            self.item_name_FPR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableFPR.setItem(i, 0, self.item_name_FPR)
+            self.item_Alias_FPR = QTableWidgetItem(fpr_name[i])
+            self.item_Alias_FPR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableFPR.setItem(i, 1, self.item_Alias_FPR)
+            self.item_Value_FPR = QTableWidgetItem(fpr_data[i])
+            self.item_Value_FPR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableFPR.setItem(i, 2, self.item_Value_FPR)
+
+        # put data to tableCSR
+        csr_name = [fileContent[i][0] for i in range(65, 126)]
+        csr_data = [fileContent[i][1] for i in range(65, 126)]
+        for i in range(61):
+            self.item_name_CSR = QTableWidgetItem(csr_name[i])
+            self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableCSR.setItem(i, 0, self.item_name_CSR)
+            self.item_value_CSR = QTableWidgetItem(csr_data[i])
+            self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableCSR.setItem(i, 1, self.item_value_CSR)
 
     def getData(self):
         healthPath = self.clientView.settings.value("CLIENT/DUT_Health")
@@ -154,6 +189,7 @@ class REGDUTsub(QMdiSubWindow):
 
     def minshow(self):
         self.showNormal()
+
 
 class REGREFsub(QMdiSubWindow):
 
@@ -260,8 +296,17 @@ class REGREFsub(QMdiSubWindow):
         self.tableFPR.verticalHeader().setVisible(False)
 
     def CSR_tabUI(self):
-        
-        pass
+        layout = QVBoxLayout()
+        self.tableCSR = QTableWidget(61, 2)
+        self.tableCSR.setHorizontalHeaderLabels(["Name", "Value"])
+        self.tableCSR.horizontalHeader().setStretchLastSection(True)
+        # self.tableCSR.verticalHeader.setHidden(True)
+        self.tableCSR.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        self.tableCSR.setColumnWidth(0, 100)
+        layout.addWidget(self.tableCSR)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.ref_CSR_tab.setLayout(layout)
+        self.tableCSR.verticalHeader().setVisible(False)
 
     def display(self):
         # get data from file
@@ -280,8 +325,33 @@ class REGREFsub(QMdiSubWindow):
             self.item_Value = QTableWidgetItem(fileContent[i][1])
             self.item_Value.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
             self.tableGPR.setItem(i, 2, self.item_Value)
-            
+        
+        # put data to tableFPR
+        FPRName = ["f{i}".format(i=i) for i in range(32)]
+        fpr_name = [fileContent[i][0] for i in range(33, 65)]
+        fpr_data = [fileContent[i][-1][:-1] for i in range(33, 65)]
+        for i in range(32):
+            self.item_name_FPR = QTableWidgetItem(FPRName[i])
+            self.item_name_FPR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableFPR.setItem(i, 0, self.item_name_FPR)
+            self.item_Alias_FPR = QTableWidgetItem(fpr_name[i])
+            self.item_Alias_FPR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableFPR.setItem(i, 1, self.item_Alias_FPR)
+            self.item_Value_FPR = QTableWidgetItem(fpr_data[i])
+            self.item_Value_FPR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableFPR.setItem(i, 2, self.item_Value_FPR)
 
+        # put data to tableCSR
+        csr_name = [fileContent[i][0] for i in range(65, 126)]
+        csr_data = [fileContent[i][1] for i in range(65, 126)]
+        for i in range(61):
+            self.item_name_CSR = QTableWidgetItem(csr_name[i])
+            self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableCSR.setItem(i, 0, self.item_name_CSR)
+            self.item_value_CSR = QTableWidgetItem(csr_data[i])
+            self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.tableCSR.setItem(i, 1, self.item_value_CSR)
+            
     def getData(self):
         healthPath = self.clientView.settings.value("CLIENT/REF_Health")
         filePath = healthPath + "/cpu_status_spike"
