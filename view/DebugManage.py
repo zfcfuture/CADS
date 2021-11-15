@@ -331,6 +331,7 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         p.start()
 
     def WatchdogUDF(self):
+        # initial for health information
         fileName_1 = self.clientView.ref_healthPath + "/cpu_status_spike"
         fileName_2 = self.clientView.dut_healthPath + "/cpu_status_haps"
         firstFlag = 0
@@ -338,6 +339,11 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         firstTime_1 = time.localtime(os.path.getmtime(fileName_1))
         file_2 = open(fileName_2, "r+")
         firstTime_2 = time.localtime(os.path.getmtime(fileName_2))
+
+        # initial for snapshot
+        REF_fileNumber = os.listdir(self.clientView.ref_snapshotPath)
+        DUT_fileNumber = os.listdir(self.clientView.dut_snapshotPath)
+
         while True:
             if firstFlag == 0:
                 firstFlag = 1
