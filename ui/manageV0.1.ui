@@ -151,20 +151,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="exportButton">
-         <property name="text">
-          <string>快照导出</string>
-         </property>
-         <property name="icon">
-          <iconset>
-           <normaloff>../imgs/icon/export.png</normaloff>../imgs/icon/export.png</iconset>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QToolButton" name="compareButton">
          <property name="text">
           <string>快照比较报告</string>
@@ -179,9 +165,23 @@
         </widget>
        </item>
        <item>
+        <widget class="QToolButton" name="snapshotButton">
+         <property name="text">
+          <string>快照信息</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>../imgs/icon/snapshot.png</normaloff>../imgs/icon/snapshot.png</iconset>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="healthButton">
          <property name="text">
-          <string>健康状况报告</string>
+          <string>健康信息</string>
          </property>
          <property name="icon">
           <iconset>
@@ -210,7 +210,7 @@
     </item>
     <item>
      <widget class="QWidget" name="widget_3" native="true">
-      <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,0,8,0,8">
+      <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,0,16">
        <property name="spacing">
         <number>1</number>
        </property>
@@ -250,7 +250,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>147</width>
+              <width>148</width>
               <height>468</height>
              </rect>
             </property>
@@ -278,44 +278,7 @@
               </spacer>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_7">
-               <item>
-                <spacer name="verticalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QPushButton" name="Main_button">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-                   <horstretch>0</horstretch>
-                   <verstretch>1</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>105</width>
-                   <height>60</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>12</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Main</string>
-                 </property>
-                </widget>
-               </item>
+              <layout class="QVBoxLayout" name="verticalLayout_7" stretch="1,1,1,1,1,1,1">
                <item>
                 <spacer name="verticalSpacer_3">
                  <property name="orientation">
@@ -487,136 +450,10 @@
         </spacer>
        </item>
        <item>
-        <layout class="QGridLayout" name="REF_layout">
+        <layout class="QHBoxLayout" name="mdiLayout">
          <property name="rightMargin">
-          <number>2</number>
+          <number>0</number>
          </property>
-         <item row="0" column="0">
-          <widget class="QWidget" name="REF_widget" native="true">
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QScrollArea" name="referenceArea">
-              <property name="widgetResizable">
-               <bool>true</bool>
-              </property>
-              <widget class="QWidget" name="scrollAreaWidgetContents">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>0</y>
-                 <width>605</width>
-                 <height>468</height>
-                </rect>
-               </property>
-               <widget class="QLabel" name="referencelabel">
-                <property name="geometry">
-                 <rect>
-                  <x>0</x>
-                  <y>0</y>
-                  <width>461</width>
-                  <height>21</height>
-                 </rect>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>11</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string> Reference</string>
-                </property>
-               </widget>
-              </widget>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_7">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>6</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <layout class="QGridLayout" name="DUT_layout">
-         <item row="0" column="0">
-          <widget class="QWidget" name="DUT_widget" native="true">
-           <layout class="QGridLayout" name="gridLayout_3">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <property name="verticalSpacing">
-             <number>6</number>
-            </property>
-            <item row="0" column="0">
-             <widget class="QScrollArea" name="DUTArea_2">
-              <property name="widgetResizable">
-               <bool>true</bool>
-              </property>
-              <widget class="QWidget" name="scrollAreaWidgetContents_2">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>0</y>
-                 <width>606</width>
-                 <height>468</height>
-                </rect>
-               </property>
-               <widget class="QLabel" name="DUTlabel">
-                <property name="geometry">
-                 <rect>
-                  <x>0</x>
-                  <y>0</y>
-                  <width>441</width>
-                  <height>21</height>
-                 </rect>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>11</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string> DUT</string>
-                </property>
-               </widget>
-              </widget>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
         </layout>
        </item>
       </layout>

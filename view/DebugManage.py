@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import time
 
@@ -23,6 +24,7 @@ from InstructionsMdi import ISDUTsub, ISREFsub
 from RegisterMdi import REGDUTsub, REGREFsub
 from MemoryMdi import MEMDUTsub, MEMREFsub
 from manage import Ui_MainWindow
+
 
 class DebugManage(QMainWindow, Ui_MainWindow):
     """
@@ -69,19 +71,34 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         self.mdiLayout.addWidget(self.stack)
 
         # add widget for statusbar
-        self.link_status = QLabel('{:<40}'.format('连接状态：'))
-        self.run_status = QLabel('{:<40}'.format('运行状态：'))
-        self.health_status = QLabel('{:<40}'.format('当前健康状态：'))
-        self.harttext_status = QLabel('{:<0}'.format('当前hart：'))
+        self.link_status = QLabel('{:<15}'.format('连接状态：'))
+        self.run_status = QLabel('{:<15}'.format('运行状态：'))
+        self.health_status = QLabel('{:<15}'.format('当前健康状态：'))
+        self.harttext_status = QLabel('当前hart：')
         self.hart_status = QComboBox()
-        self.pc_status = QLabel('{:<40}'.format('PC：'))
+        self.refpc_status = QLabel('PC(REF)：')
+        self.dutpc_status = QLabel('PC(DUT)：')
+        self.refminstret_status = QLabel('minstret(REF)：')
+        self.dutminstret_status = QLabel('minstret(DUT)：')
+        self.refpc_status.setMinimumWidth(50)
+        self.dutpc_status.setMinimumWidth(50)
+        self.refminstret_status.setMinimumWidth(60)
+        self.dutminstret_status.setMinimumWidth(60)
         self.hart_status.addItems(['hart0'])
-        self.statusbar.addWidget(self.link_status, 1)
-        self.statusbar.addWidget(self.run_status, 1)
-        self.statusbar.addWidget(self.health_status, 1)
-        self.statusbar.addWidget(self.harttext_status)
-        self.statusbar.addWidget(self.hart_status)
-        self.statusbar.addWidget(self.pc_status, 1)
+        self.statuswidget = QWidget()
+        self.status_layout = QHBoxLayout()
+        self.status_layout.addWidget(self.harttext_status)
+        self.status_layout.addWidget(self.hart_status)
+        self.status_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.statuswidget.setLayout(self.status_layout)
+        self.statusbar.addPermanentWidget(self.link_status,stretch=1)
+        self.statusbar.addPermanentWidget(self.run_status,stretch=1)
+        self.statusbar.addPermanentWidget(self.health_status, 1)
+        self.statusbar.addPermanentWidget(self.statuswidget, 1)
+        self.statusbar.addPermanentWidget(self.refpc_status, 5)
+        self.statusbar.addPermanentWidget(self.dutpc_status, 5)
+        self.statusbar.addPermanentWidget(self.refminstret_status, 6)
+        self.statusbar.addPermanentWidget(self.dutminstret_status, 6)
 
         # add load-table and load-button for main ui
         self.taskTable = TableWidget(3, 2)
@@ -110,7 +127,7 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         self.serviceButton.clicked.connect(self.showServer)
         self.clientButton.clicked.connect(self.showClient)
         self.importButton.clicked.connect(self.showImport)
-        self.exportButton.clicked.connect(self.showExport)
+        # self.exportButton.clicked.connect(self.showExport)
         self.compareButton.clicked.connect(self.showCompare)
 
         self.compileButton.clicked.connect(self.handleCompile)
@@ -130,6 +147,9 @@ class DebugManage(QMainWindow, Ui_MainWindow):
 
         isREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
         isDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+
+        isREF_sub.setWindowFlags(Qt.FramelessWindowHint)
+        isDUT_sub.setWindowFlags(Qt.FramelessWindowHint)
         
         self.is_mdi.tileSubWindows()
     
@@ -143,6 +163,9 @@ class DebugManage(QMainWindow, Ui_MainWindow):
 
         self.regREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
         self.regDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+
+        self.regREF_sub.setWindowFlags(Qt.FramelessWindowHint)
+        self.regDUT_sub.setWindowFlags(Qt.FramelessWindowHint)
         
         self.reg_mdi.tileSubWindows()
 
@@ -156,6 +179,9 @@ class DebugManage(QMainWindow, Ui_MainWindow):
 
         memREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
         memDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+
+        memREF_sub.setWindowFlags(Qt.FramelessWindowHint)
+        memDUT_sub.setWindowFlags(Qt.FramelessWindowHint)
 
         self.mem_mdi.tileSubWindows()
     
@@ -300,24 +326,103 @@ class DebugManage(QMainWindow, Ui_MainWindow):
             print(res2)
 
         # display information from files(Instruction, Register, Memory)
-        p = Thread(target=self.handleWatchdog)
+        p = Thread(target=self.WatchdogUDF)
+        p.setDaemon(True)
         p.start()
 
-    def handleWatchdog(self):
-        self.observer = Observer()
-        event_handler = FileEventHandler()
-        refHealth = self.clientView.ref_healthPath
-        dutHealth = self.clientView.dut_healthPath
-        dirs = [refHealth, dutHealth]
-        for dir in dirs:
-            self.observer.schedule(event_handler, dir, True)
-        self.observer.start()
-        self.observer.join()
+    def WatchdogUDF(self):
+        fileName_1 = self.clientView.ref_healthPath + "/cpu_status_spike"
+        fileName_2 = self.clientView.dut_healthPath + "/cpu_status_haps"
+        firstFlag = 0
+        file_1 = open(fileName_1, "r+")
+        firstTime_1 = time.localtime(os.path.getmtime(fileName_1))
+        file_2 = open(fileName_2, "r+")
+        firstTime_2 = time.localtime(os.path.getmtime(fileName_2))
+        while True:
+            if firstFlag == 0:
+                firstFlag = 1
+                self.regREF_sub.display()
+                file_1.close()
+                self.regDUT_sub.display()
+                file_2.close()
 
-    def serverCMD(self, ip, command):
+            time.sleep(3)
+
+            lastModifyTime_1 = time.localtime(os.path.getmtime(fileName_1))
+            lastModifyTime_2 = time.localtime(os.path.getmtime(fileName_2))
+            
+            # compare health(REF & DUT) and send flag
+            if lastModifyTime_1 != firstTime_1 and lastModifyTime_2 != firstTime_2:
+                pass
+            self.sendFlag()
+
+            # reference register display
+            
+            if firstTime_1 != lastModifyTime_1:
+                firstTime_1 = lastModifyTime_1
+                self.regREF_sub.display()
+                self.showStatus("REF")
+
+            # DUT register display
+            if firstTime_2 != lastModifyTime_2:
+                firstTime_2 = lastModifyTime_2
+                self.regDUT_sub.display()
+                self.showStatus("DUT")
+
+    def sendFlag(self):
+        # write for REF
+        ip = self.serverView.ref_remoteHost
+        user = self.serverView.ref_hostname
+        passwd = self.serverView.ref_password
+        cmd = "cd ~/CADS-REF/debugToolData;echo '1'> flag.txt"
+        self.serverCMD(ip, user, passwd, cmd)
+
+        # write for DUT
+        ip_2 = self.serverView.dut_remoteHost
+        user_2 = self.serverView.dut_hostname
+        passwd_2 = self.serverView.dut_password
+        cmd_2 = "cd ~/debugToolData;echo '1'> flag.txt"
+        self.serverCMD(ip_2, user_2, passwd_2, cmd_2)
+
+    def showStatus(self, source):
+        # get pc and minstret
+        pc, minstret = self.findValue(source)
+
+        # display
+        if source == "REF":
+            self.refpc_status.setText('PC(REF)：{0}'.format(pc))
+            self.refminstret_status.setText('minstret(REF)：{0}'.format(minstret))
+        else:
+            self.dutpc_status.setText('PC(DUT)：{0}'.format(pc))
+            self.dutminstret_status.setText('minstret(DUT)：{0}'.format(minstret))
+
+    def findValue(self, source):
+        if source == "REF":
+            curSub = self.regREF_sub
+        else: 
+            curSub = self.regDUT_sub
+        
+        data = curSub.getData()
+
+        for i in range(len(data)):
+            for j in range(len(data[i])):
+                if "pc" == data[i][j]:
+                    rowPCList = data[i]
+                    pc = rowPCList[1]
+                if "minstret" == data[i][j]:
+                    rowList = data[i]
+                    minstret = rowList[1]
+
+        return pc, minstret
+        
+
+    def serverCMD(self, ip, user, passwd, command):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-        ssh.connect(hostname=ip, username=self.serverView.hostname, password=self.serverView.password)
+        if ip == "10.12.130.31":
+            ssh.connect(hostname=ip, port=22017, username=user, password=passwd)
+        else:
+            ssh.connect(hostname=ip, username=user, password=passwd)
         _, stdout, _ = ssh.exec_command(command, get_pty=True)
 
         res = ''
@@ -338,7 +443,8 @@ class DebugManage(QMainWindow, Ui_MainWindow):
     def resizeEvent(self, event):
         self.resized.emit()
         return super(DebugManage, self).resizeEvent(event)
-        
+
+
 class TableWidget(QTableWidget):
     """
     Overwrite QTableWidget
@@ -379,12 +485,10 @@ class TableWidget(QTableWidget):
         self.setItem(selectRow, 1, self.lists1_item)
         self.setItem(targetRow, 1, self.lists0_item)
 
+
 class FileEventHandler(FileSystemEventHandler):
     def __init__(self):
         FileSystemEventHandler.__init__(self)
-        self.clientView = ClientConfView()
-        self.registerREF = REGREFsub()
-        self.registerDUT = REGDUTsub()
 
     def on_moved(self, event):
         if event.is_directory:
@@ -408,13 +512,11 @@ class FileEventHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         if event.is_directory:
-            print("directory modified:{0}".format(event.src_path))
+            # print("directory modified:{0}".format(event.src_path))
+            pass
         else:
-            # print("file modified:{0}".format(event.src_path))
-            if event.src_path == self.clientView.ref_healthPath:
-                self.registerREF.display()
-            elif event.src_path == self.clientView.dut_healthPath:
-                self.registerDUT.display()
+            print("file modified:{0}".format(event.src_path))
+            # print(event.src_path, DebugManage().clientView.ref_healthPath)
 
 if __name__ == "__main__":
     with open('view/app.qss', encoding='utf-8') as f:
