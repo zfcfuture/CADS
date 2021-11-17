@@ -129,27 +129,38 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         self.importButton.clicked.connect(self.showImport)
         # self.exportButton.clicked.connect(self.showExport)
         self.compareButton.clicked.connect(self.showCompare)
+        self.healthButton.clicked.connect(self.switchToHealth)
+        self.snapshotButton.clicked.connect(self.swichToSnapshot)
 
-        self.compileButton.clicked.connect(self.handleCompile)
+        # self.compileButton.clicked.connect(self.handleCompile)
         self.testButton.clicked.connect(self.handleStartTest)
-        self.routeButton.clicked.connect(self.handleRouteSelect)
+        # self.routeButton.clicked.connect(self.handleRouteSelect)
         self.trunButton.clicked.connect(self.handleTruncate)
         self.loadButton.clicked.connect(self.handleLoadELF)
         self.resized.connect(self.refresh)
 
+        self.IS_button.setCheckable(True)
+        self.IS_button.setAutoExclusive(True)
+        self.Reg_button.setCheckable(True)
+        self.Reg_button.setAutoExclusive(True)
+        self.Mem_button.setCheckable(True)
+        self.Mem_button.setAutoExclusive(True)
+
+        self.switchFlag = 0 # 0:health  1:snapshot
+
     def is_mdiUI(self):
 
-        isDUT_sub = ISDUTsub()
-        self.is_mdi.addSubWindow(isDUT_sub)
+        self.isDUT_sub = ISDUTsub()
+        self.is_mdi.addSubWindow(self.isDUT_sub)
 
-        isREF_sub = ISREFsub()
-        self.is_mdi.addSubWindow(isREF_sub)
+        self.isREF_sub = ISREFsub()
+        self.is_mdi.addSubWindow(self.isREF_sub)
 
-        isREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
-        isDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        self.isREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        self.isDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
 
-        isREF_sub.setWindowFlags(Qt.FramelessWindowHint)
-        isDUT_sub.setWindowFlags(Qt.FramelessWindowHint)
+        self.isREF_sub.setWindowFlags(Qt.FramelessWindowHint)
+        self.isDUT_sub.setWindowFlags(Qt.FramelessWindowHint)
         
         self.is_mdi.tileSubWindows()
     
@@ -209,6 +220,12 @@ class DebugManage(QMainWindow, Ui_MainWindow):
 
     def showCompare(self):
         self.compareView.compare_ui.show()
+
+    def switchToHealth(self):
+        self.switchFlag = 0
+
+    def swichToSnapshot(self):
+        self.switchFlag = 1
 
     def handleCompile(self):
         # Temporarily used to load local ELF-files to taskTable
@@ -341,37 +358,44 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         firstTime_2 = time.localtime(os.path.getmtime(fileName_2))
 
         # initial for snapshot
-        REF_fileNumber = os.listdir(self.clientView.ref_snapshotPath)
-        DUT_fileNumber = os.listdir(self.clientView.dut_snapshotPath)
+        REF_fileNumber = len(os.listdir(self.clientView.ref_snapshotPath))
+        DUT_fileNumber = len(os.listdir(self.clientView.dut_snapshotPath))
 
         while True:
-            if firstFlag == 0:
-                firstFlag = 1
-                self.regREF_sub.display()
-                file_1.close()
-                self.regDUT_sub.display()
-                file_2.close()
+            if self.switchFlag == 0:
+                if firstFlag == 0:
+                    firstFlag = 1
+                    self.regREF_sub.display()
+                    file_1.close()
+                    self.regDUT_sub.display()
+                    file_2.close()
+                    ref_pc = self.showStatus("REF")
+                    dut_pc = self.showStatus("DUT")
+                    self.isREF_sub.display(ref_pc)
+                    self.isDUT_sub.display(dut_pc)
 
-            time.sleep(3)
+                time.sleep(3)
 
-            lastModifyTime_1 = time.localtime(os.path.getmtime(fileName_1))
-            lastModifyTime_2 = time.localtime(os.path.getmtime(fileName_2))
-            
-            # compare health(REF & DUT) and send flag
-            if lastModifyTime_1 != firstTime_1 and lastModifyTime_2 != firstTime_2:
-                self.sendFlag()
+                lastModifyTime_1 = time.localtime(os.path.getmtime(fileName_1))
+                lastModifyTime_2 = time.localtime(os.path.getmtime(fileName_2))
+                
+                # compare health(REF & DUT) and send flag
+                if lastModifyTime_1 != firstTime_1 and lastModifyTime_2 != firstTime_2:
+                    self.sendFlag()
 
-            # reference register display
-            if firstTime_1 != lastModifyTime_1:
-                firstTime_1 = lastModifyTime_1
-                self.regREF_sub.display()
-                self.showStatus("REF")
+                # REF register display
+                if firstTime_1 != lastModifyTime_1:
+                    firstTime_1 = lastModifyTime_1
+                    self.regREF_sub.display()
+                    self.showStatus("REF")
 
-            # DUT register display
-            if firstTime_2 != lastModifyTime_2:
-                firstTime_2 = lastModifyTime_2
-                self.regDUT_sub.display()
-                self.showStatus("DUT")
+                # DUT register display
+                if firstTime_2 != lastModifyTime_2:
+                    firstTime_2 = lastModifyTime_2
+                    self.regDUT_sub.display()
+
+            elif self.switchFlag == 1:
+                pass
 
     def sendFlag(self):
         # write for REF
@@ -399,6 +423,8 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         else:
             self.dutpc_status.setText('PC(DUT)：{0}'.format(pc))
             self.dutminstret_status.setText('minstret(DUT)：{0}'.format(minstret))
+        
+        return pc
 
     def findValue(self, source):
         if source == "REF":

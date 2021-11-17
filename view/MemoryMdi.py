@@ -42,7 +42,10 @@ class MEMDUTsub(QMdiSubWindow):
         min_button1.setIcon(QtGui.QIcon('imgs/icon/min.png'))
         min_button1.setIconSize(QtCore.QSize(14, 14))
         min_button1.setStyleSheet("border:none;")
+
+        mem_titlelable1 = QLabel('DUT')
         title_Hlayout1 = QHBoxLayout()
+        title_Hlayout1.addWidget(mem_titlelable1)
         title_Hlayout1.addItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         title_Hlayout1.addWidget(min_button1)
         title_Hlayout1.addWidget(max_button1)
@@ -60,11 +63,8 @@ class MEMDUTsub(QMdiSubWindow):
         self.dut_tableWidget.horizontalHeader().setStretchLastSection(True)
         self.dut_tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-        mem_titlelable1 = QLabel()
-        mem_titlelable1.setText('DUT')
         mem_dutVlayout = QVBoxLayout()
         mem_dutVlayout.addWidget(titile_widget1)
-        mem_dutVlayout.addWidget(mem_titlelable1)
         mem_dutVlayout.addWidget(table_widget1)
         mem_dutVlayout.addWidget(mem_dut_hwg)
         mem_dut_scroll = QScrollArea()
@@ -73,7 +73,7 @@ class MEMDUTsub(QMdiSubWindow):
 
         mem_dutVlayout.setContentsMargins(9,0,0,0)
         title_Hlayout1.setContentsMargins(0,2,4,0)
-        table_layout1.setContentsMargins(0,0,9,0)
+        table_layout1.setContentsMargins(0,9,9,0)
         
         max_button1.pressed.connect(self.maxshow)
         min_button1.pressed.connect(self.minshow)
@@ -122,7 +122,10 @@ class MEMREFsub(QMdiSubWindow):
         min_button2.setIcon(QtGui.QIcon('imgs/icon/min.png'))
         min_button2.setIconSize(QtCore.QSize(14, 14))
         min_button2.setStyleSheet("border:none;")
+
+        mem_titlelable2 = QLabel('Reference')
         title_Hlayout2 = QHBoxLayout()
+        title_Hlayout2.addWidget(mem_titlelable2)
         title_Hlayout2.addItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         title_Hlayout2.addWidget(min_button2)
         title_Hlayout2.addWidget(max_button2)
@@ -139,11 +142,9 @@ class MEMREFsub(QMdiSubWindow):
         self.ref_tableWidget.setHorizontalHeaderLabels(['Address', 'Word', 'Byte0', 'Byte1', 'Byte2'])
         self.ref_tableWidget.horizontalHeader().setStretchLastSection(True)
         self.ref_tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        mem_titlelable2 = QLabel()
-        mem_titlelable2.setText('Reference')
+
         mem_refVlayout = QVBoxLayout()
         mem_refVlayout.addWidget(titile_widget2)
-        mem_refVlayout.addWidget(mem_titlelable2)
         mem_refVlayout.addWidget(table_widget2)
         mem_refVlayout.addWidget(mem_ref_hwg)
         mem_ref_scroll = QScrollArea()
@@ -152,7 +153,7 @@ class MEMREFsub(QMdiSubWindow):
 
         mem_refVlayout.setContentsMargins(9,0,0,0)
         title_Hlayout2.setContentsMargins(0,2,4,0)
-        table_layout2.setContentsMargins(0,0,9,0)
+        table_layout2.setContentsMargins(0,9,9,0)
         
         max_button2.pressed.connect(self.maxshow)
         min_button2.pressed.connect(self.minshow)

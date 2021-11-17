@@ -41,7 +41,10 @@ class REGDUTsub(QMdiSubWindow):
         min_button1.setIcon(QtGui.QIcon('imgs/icon/min.png'))
         min_button1.setIconSize(QtCore.QSize(14, 14))
         min_button1.setStyleSheet("border:none;")
+
+        reg_titlelable1 = QLabel('DUT')
         title_Hlayout1 = QHBoxLayout()
+        title_Hlayout1.addWidget(reg_titlelable1)
         title_Hlayout1.addItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         title_Hlayout1.addWidget(min_button1)
         title_Hlayout1.addWidget(max_button1)
@@ -66,11 +69,8 @@ class REGDUTsub(QMdiSubWindow):
         self.FPR_tabUI()
         self.CSR_tabUI()
 
-        reg_titlelable1 = QLabel()
-        reg_titlelable1.setText('DUT')
         reg_dutVlayout = QVBoxLayout()
         reg_dutVlayout.addWidget(titile_widget1)
-        reg_dutVlayout.addWidget(reg_titlelable1)
         reg_dutVlayout.addWidget(tab_widget1)
         reg_dutVlayout.addWidget(reg_dut_hwg)
         reg_dut_scroll = QScrollArea()
@@ -79,7 +79,7 @@ class REGDUTsub(QMdiSubWindow):
 
         reg_dutVlayout.setContentsMargins(9,0,0,0)
         title_Hlayout1.setContentsMargins(0,2,4,0)
-        tab_layout1.setContentsMargins(0,0,9,0)
+        tab_layout1.setContentsMargins(0,9,9,0)
 
         max_button1.pressed.connect(self.maxshow)
         min_button1.pressed.connect(self.minshow)
@@ -224,7 +224,10 @@ class REGREFsub(QMdiSubWindow):
         min_button2.setIcon(QtGui.QIcon('imgs/icon/min.png'))
         min_button2.setIconSize(QtCore.QSize(14, 14))
         min_button2.setStyleSheet("border:none;")
+
+        reg_titlelable2 = QLabel('Reference')
         title_Hlayout2 = QHBoxLayout()
+        title_Hlayout2.addWidget(reg_titlelable2)
         title_Hlayout2.addItem(QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         title_Hlayout2.addWidget(min_button2)
         title_Hlayout2.addWidget(max_button2)
@@ -249,11 +252,8 @@ class REGREFsub(QMdiSubWindow):
         self.FPR_tabUI()
         self.CSR_tabUI()
 
-        reg_titlelable2 = QLabel()
-        reg_titlelable2.setText('Reference')
         reg_refVlayout = QVBoxLayout()
         reg_refVlayout.addWidget(titile_widget2)
-        reg_refVlayout.addWidget(reg_titlelable2)
         reg_refVlayout.addWidget(tab_widget2)
         reg_refVlayout.addWidget(reg_ref_hwg)
         reg_ref_scroll = QScrollArea()
@@ -262,7 +262,7 @@ class REGREFsub(QMdiSubWindow):
 
         reg_refVlayout.setContentsMargins(9,0,0,0)
         title_Hlayout2.setContentsMargins(0,2,4,0)
-        tab_layout2.setContentsMargins(0,0,9,0)
+        tab_layout2.setContentsMargins(0,9,9,0)
 
         max_button2.pressed.connect(self.maxshow)
         min_button2.pressed.connect(self.minshow)
