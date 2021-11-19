@@ -15,7 +15,9 @@ class ISDUTsub(QMdiSubWindow):
     """
 
     def __init__(self):
+
         super().__init__()
+
         self.clientView = ClientConfView()
 
         #isDUT_sub = QMdiSubWindow(self)
@@ -93,7 +95,7 @@ class ISDUTsub(QMdiSubWindow):
         pc = pc[2:]
 
         # handle data
-        filePath = "/home/zfc/debugTool/ELF_files/cputest.bare.haps.dis"
+        filePath = self.clientView.settings.value("CLIENT/RefELF") + "/cputest.bare.haps.dis"
         with open(filePath) as f:
             content = f.read()
         content = content.split("\n")
@@ -145,7 +147,11 @@ class ISREFsub(QMdiSubWindow):
     """
     
     def __init__(self):
+
         super().__init__()
+
+        self.clientView = ClientConfView()
+
         #isREF_sub = QMdiSubWindow(self)
         is_reflable = QLabel()
         is_reflable.setText('View mode:')
@@ -221,7 +227,7 @@ class ISREFsub(QMdiSubWindow):
         pc = pc[2:]
 
         # handle data
-        filePath = "/home/zfc/debugTool/ELF_files/cputest.bare.haps.dis"
+        filePath = self.clientView.settings.value("CLIENT/RefELF") + "/cputest.bare.haps.dis"
         with open(filePath) as f:
             content = f.read()
         content = content.split("\n")

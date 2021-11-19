@@ -4,6 +4,7 @@ import sys
 import time
 
 import paramiko
+from paramiko import file
 from pexpect import *
 
 from watchdog.observers import Observer
@@ -105,12 +106,6 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         self.LoadLayout.addWidget(self.taskTable, 0, 0, 10, 12)
         self.spaceLable = QLabel()
         self.LoadLayout.addWidget(self.spaceLable, 10, 12, 0, 1)
-        self.loadButton = QPushButton()
-        self.loadButton.setText('加载')
-        self.LoadLayout.addWidget(self.loadButton, 9, 13, 1, 1)
-        self.trunButton = QPushButton()
-        self.trunButton.setText('清空')
-        self.LoadLayout.addWidget(self.trunButton, 8, 13, 1, 1)
 
         self.taskTable.setHorizontalHeaderLabels(['Check', '任务名'])
         self.taskTable.horizontalHeader().setStretchLastSection(True)
@@ -127,10 +122,8 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         self.serviceButton.clicked.connect(self.showServer)
         self.clientButton.clicked.connect(self.showClient)
         self.importButton.clicked.connect(self.showImport)
-        # self.exportButton.clicked.connect(self.showExport)
         self.compareButton.clicked.connect(self.showCompare)
-        self.healthButton.clicked.connect(self.switchToHealth)
-        self.snapshotButton.clicked.connect(self.swichToSnapshot)
+        self.comboBox.currentIndexChanged.connect(self.selectionchange)
 
         # self.compileButton.clicked.connect(self.handleCompile)
         self.testButton.clicked.connect(self.handleStartTest)
@@ -138,6 +131,8 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         self.trunButton.clicked.connect(self.handleTruncate)
         self.loadButton.clicked.connect(self.handleLoadELF)
         self.resized.connect(self.refresh)
+        self.downButton.clicked.connect(self.downHide)
+        self.upButton.clicked.connect(self.upper)
 
         self.IS_button.setCheckable(True)
         self.IS_button.setAutoExclusive(True)
@@ -182,17 +177,17 @@ class DebugManage(QMainWindow, Ui_MainWindow):
 
     def mem_mdiUI(self):
         
-        memDUT_sub = MEMDUTsub()
-        self.mem_mdi.addSubWindow(memDUT_sub)
+        self.memDUT_sub = MEMDUTsub()
+        self.mem_mdi.addSubWindow(self.memDUT_sub)
 
-        memREF_sub = MEMREFsub()
-        self.mem_mdi.addSubWindow(memREF_sub)
+        self.memREF_sub = MEMREFsub()
+        self.mem_mdi.addSubWindow(self.memREF_sub)
 
-        memREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
-        memDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        self.memREF_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        self.memDUT_sub.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
 
-        memREF_sub.setWindowFlags(Qt.FramelessWindowHint)
-        memDUT_sub.setWindowFlags(Qt.FramelessWindowHint)
+        self.memREF_sub.setWindowFlags(Qt.FramelessWindowHint)
+        self.memDUT_sub.setWindowFlags(Qt.FramelessWindowHint)
 
         self.mem_mdi.tileSubWindows()
     
@@ -221,11 +216,11 @@ class DebugManage(QMainWindow, Ui_MainWindow):
     def showCompare(self):
         self.compareView.compare_ui.show()
 
-    def switchToHealth(self):
-        self.switchFlag = 0
-
-    def swichToSnapshot(self):
-        self.switchFlag = 1
+    def selectionchange(self):
+        if self.comboBox.currentIndex() == 0:
+            self.switchFlag = 0
+        elif self.comboBox.currentIndex() == 1:
+            self.switchFlag = 1
 
     def handleCompile(self):
         # Temporarily used to load local ELF-files to taskTable
@@ -347,55 +342,130 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         p.setDaemon(True)
         p.start()
 
+        p2 = Thread(target=self.WatchdogUDF2)
+        p2.setDaemon(True)
+        p2.start()
+
     def WatchdogUDF(self):
-        # initial for health information
+        # set initial value for health information
         fileName_1 = self.clientView.ref_healthPath + "/cpu_status_spike"
         fileName_2 = self.clientView.dut_healthPath + "/cpu_status_haps"
-        firstFlag = 0
+        healthFirstFlag = 0
         file_1 = open(fileName_1, "r+")
         firstTime_1 = time.localtime(os.path.getmtime(fileName_1))
         file_2 = open(fileName_2, "r+")
         firstTime_2 = time.localtime(os.path.getmtime(fileName_2))
 
-        # initial for snapshot
-        REF_fileNumber = len(os.listdir(self.clientView.ref_snapshotPath))
-        DUT_fileNumber = len(os.listdir(self.clientView.dut_snapshotPath))
+        while True:
+            # print(self.switchFlag)
+            if self.switchFlag == 0:
+                view = "VIEW_0"     # VIEW_0:health VIEW_1:snapshot
+                # if healthFirstFlag == 0:
+                #     healthFirstFlag = 1
+                #     self.regREF_sub.display(view)
+                #     file_1.close()
+                #     self.regDUT_sub.display(view)
+                #     file_2.close()
+                #     ref_pc = self.showStatus("REF", view)
+                #     dut_pc = self.showStatus("DUT", view)
+                #     self.isREF_sub.display(ref_pc)
+                #     self.isDUT_sub.display(dut_pc)
+
+                time.sleep(3)
+                
+                # compare health(REF & DUT) and send flag
+                while True:
+                    lastModifyTime_1 = time.localtime(os.path.getmtime(fileName_1))
+                    lastModifyTime_2 = time.localtime(os.path.getmtime(fileName_2))
+                    if lastModifyTime_1 != firstTime_1 and lastModifyTime_2 != firstTime_2:
+                        os.popen('cd {path}/backend && ./cpu_status_file_cmp.sh'.format(path=os.getcwd()))
+                        with open("{cmpPath}/cpu_status_cmp_result.txt".format(cmpPath=self.clientView.healthCompare)) as f:
+                            content = f.read()
+                        print(content)
+                        if content == "":
+                            self.sendFlag()
+                        else:
+                            QMessageBox.information(self, '提示', '健康信息异常，程序已停止!')
+                            input()
+                        f.close()
+                        break
+
+                # REF [register, instruction] display
+                if firstTime_1 != lastModifyTime_1:
+                    firstTime_1 = lastModifyTime_1
+                    self.regREF_sub.display(view)
+                    ref_pc = self.showStatus("REF", view)
+                    self.isREF_sub.display(ref_pc)
+
+                # DUT [register, instruction] display
+                if firstTime_2 != lastModifyTime_2:
+                    firstTime_2 = lastModifyTime_2
+                    self.regDUT_sub.display(view)
+                    dut_pc = self.showStatus("DUT", view)
+                    self.isDUT_sub.display(dut_pc)
+
+    def WatchdogUDF2(self):
+        # set initial value for snapshot register
+        refSnapshotFile = self.clientView.ref_snapshotPath + "/regsnapshot_gem5.txt"
+        dutSnapshotFile = self.clientView.dut_snapshotPath + "/regsnapshot_gem5.txt"
+        snapFirstFlag = 0
+        file_ref = open(refSnapshotFile, "r+")
+        firstTime_ref = time.localtime(os.path.getmtime(refSnapshotFile))
+        file_dut = open(dutSnapshotFile, "r+")
+        firstTime_dut = time.localtime(os.path.getmtime(dutSnapshotFile))
+
+        # set initial value for snapshot memory
+        refMemoryFile = self.clientView.ref_snapshotPath + "/memsnapshot_hexdump_gem5.txt"
+        dutMemoryFile = self.clientView.dut_snapshotPath + "/memsnapshot_hexdump_haps.txt"
+        memFirst_ref = time.localtime(os.path.getmtime(refMemoryFile))
+        memFirst_dut = time.localtime(os.path.getmtime(dutMemoryFile))
 
         while True:
-            if self.switchFlag == 0:
-                if firstFlag == 0:
-                    firstFlag = 1
-                    self.regREF_sub.display()
-                    file_1.close()
-                    self.regDUT_sub.display()
-                    file_2.close()
-                    ref_pc = self.showStatus("REF")
-                    dut_pc = self.showStatus("DUT")
-                    self.isREF_sub.display(ref_pc)
-                    self.isDUT_sub.display(dut_pc)
+            # print(self.switchFlag)
+            if self.switchFlag == 1:
+                view = "VIEW_1"     # VIEW_0:health VIEW_1:snapshot
+                # if snapFirstFlag == 0:
+                #     snapFirstFlag = 1
+                #     self.regREF_sub.display(view)
+                #     file_ref.close()
+                #     self.regDUT_sub.display(view)
+                #     file_dut.close()
+                #     ref_pc = self.showStatus("REF", view)
+                #     dut_pc = self.showStatus("DUT", view)
+                #     self.isREF_sub.display(ref_pc)
+                #     self.isDUT_sub.display(dut_pc)
 
                 time.sleep(3)
 
-                lastModifyTime_1 = time.localtime(os.path.getmtime(fileName_1))
-                lastModifyTime_2 = time.localtime(os.path.getmtime(fileName_2))
-                
-                # compare health(REF & DUT) and send flag
-                if lastModifyTime_1 != firstTime_1 and lastModifyTime_2 != firstTime_2:
-                    self.sendFlag()
+                lastModifyTime_ref = time.localtime(os.path.getmtime(refSnapshotFile))
+                lastModifyTime_dut = time.localtime(os.path.getmtime(dutSnapshotFile))
 
-                # REF register display
-                if firstTime_1 != lastModifyTime_1:
-                    firstTime_1 = lastModifyTime_1
-                    self.regREF_sub.display()
-                    self.showStatus("REF")
+                lastModifyTime_mem_ref = time.localtime(os.path.getmtime(refMemoryFile))
+                lastModifyTime_mem_dut = time.localtime(os.path.getmtime(dutMemoryFile))
 
-                # DUT register display
-                if firstTime_2 != lastModifyTime_2:
-                    firstTime_2 = lastModifyTime_2
-                    self.regDUT_sub.display()
+                # REF [register, instruction] display
+                if firstTime_ref != lastModifyTime_ref:
+                    firstTime_ref = lastModifyTime_ref
+                    self.regREF_sub.display(view)
+                    ref_pc = self.showStatus("REF", view)
+                    self.isREF_sub.display(ref_pc)
 
-            elif self.switchFlag == 1:
-                pass
+                # DUT [register, instruction] display
+                if firstTime_dut != lastModifyTime_dut:
+                    firstTime_dut = lastModifyTime_dut
+                    self.regDUT_sub.display(view)
+                    dut_pc = self.showStatus("DUT", view)
+                    self.isDUT_sub.display(dut_pc)
+
+                # REF [memory] display
+                if memFirst_ref != lastModifyTime_mem_ref:
+                    memFirst_ref = lastModifyTime_mem_ref
+                    self.memREF_sub.display()
+
+                # DUT [memory] display
+                if memFirst_dut != lastModifyTime_mem_dut:
+                    memFirst_dut = lastModifyTime_mem_dut
+                    self.memDUT_sub.display()
 
     def sendFlag(self):
         # write for REF
@@ -412,9 +482,9 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         cmd_2 = "cd ~/debugToolData;echo '1'> flag.txt"
         self.serverCMD(ip_2, user_2, passwd_2, cmd_2)
 
-    def showStatus(self, source):
+    def showStatus(self, source, view):
         # get pc and minstret
-        pc, minstret = self.findValue(source)
+        pc, minstret = self.findValue(source, view)
 
         # display
         if source == "REF":
@@ -426,13 +496,13 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         
         return pc
 
-    def findValue(self, source):
+    def findValue(self, source, view):
         if source == "REF":
             curSub = self.regREF_sub
         else: 
             curSub = self.regDUT_sub
         
-        data = curSub.getData()
+        data = curSub.getData(view)
 
         for i in range(len(data)):
             for j in range(len(data[i])):
@@ -450,9 +520,10 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
         if ip == "10.12.130.31":
             ssh.connect(hostname=ip, port=22017, username=user, password=passwd)
+            _, stdout, _ = ssh.exec_command(command, get_pty=True)
         else:
             ssh.connect(hostname=ip, username=user, password=passwd)
-        _, stdout, _ = ssh.exec_command(command, get_pty=True)
+            _, stdout, _ = ssh.exec_command(command, get_pty=True)
 
         res = ''
         lines = stdout.readlines()
@@ -472,6 +543,22 @@ class DebugManage(QMainWindow, Ui_MainWindow):
     def resizeEvent(self, event):
         self.resized.emit()
         return super(DebugManage, self).resizeEvent(event)
+
+    def downHide(self):
+        self.widget.setMaximumHeight(40)
+        self.downButton.setEnabled(False)
+        self.upButton.setEnabled(True)
+        self.is_mdi.tileSubWindows()
+        self.reg_mdi.tileSubWindows()
+        self.mem_mdi.tileSubWindows()
+
+    def upper(self):
+        self.widget.setMaximumHeight(16777215)
+        self.upButton.setEnabled(False)
+        self.downButton.setEnabled(True)
+        self.is_mdi.tileSubWindows()
+        self.reg_mdi.tileSubWindows()
+        self.mem_mdi.tileSubWindows()
 
 
 class TableWidget(QTableWidget):

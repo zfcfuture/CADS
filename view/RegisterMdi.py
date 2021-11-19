@@ -114,20 +114,20 @@ class REGDUTsub(QMdiSubWindow):
 
     def CSR_tabUI(self):
         layout = QVBoxLayout()
-        self.tableCSR = QTableWidget(61, 2)
+        self.tableCSR = QTableWidget(167, 2)
         self.tableCSR.setHorizontalHeaderLabels(["Name", "Value"])
         self.tableCSR.horizontalHeader().setStretchLastSection(True)
         # self.tableCSR.verticalHeader.setHidden(True)
         self.tableCSR.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
-        self.tableCSR.setColumnWidth(0, 100)
+        self.tableCSR.setColumnWidth(0, 120)
         layout.addWidget(self.tableCSR)
         layout.setContentsMargins(0, 0, 0, 0)
         self.dut_CSR_tab.setLayout(layout)
         self.tableCSR.verticalHeader().setVisible(False)
 
-    def display(self):
+    def display(self, view):
         # get data from file
-        fileContent = self.getData()
+        fileContent = self.getData(view)
 
         # put data to tableGPR
         GPRName = ["x{i}".format(i=i+1) for i in range(31)]
@@ -159,19 +159,34 @@ class REGDUTsub(QMdiSubWindow):
             self.tableFPR.setItem(i, 2, self.item_Value_FPR)
 
         # put data to tableCSR
-        csr_name = [fileContent[i][0] for i in range(65, 126)]
-        csr_data = [fileContent[i][1] for i in range(65, 126)]
-        for i in range(61):
-            self.item_name_CSR = QTableWidgetItem(csr_name[i])
-            self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-            self.tableCSR.setItem(i, 0, self.item_name_CSR)
-            self.item_value_CSR = QTableWidgetItem(csr_data[i])
-            self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-            self.tableCSR.setItem(i, 1, self.item_value_CSR)
+        if view == "VIEW_0":
+            csr_name = [fileContent[i][0] for i in range(65, 126)]
+            csr_data = [fileContent[i][1] for i in range(65, 126)]
+            for i in range(61):
+                self.item_name_CSR = QTableWidgetItem(csr_name[i])
+                self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.tableCSR.setItem(i, 0, self.item_name_CSR)
+                self.item_value_CSR = QTableWidgetItem(csr_data[i])
+                self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.tableCSR.setItem(i, 1, self.item_value_CSR)
+        elif view == "VIEW_1":
+            csr_name = [fileContent[i][0] for i in range(65, 232)]
+            csr_data = [fileContent[i][1] for i in range(65, 232)]
+            for i in range(167):
+                self.item_name_CSR = QTableWidgetItem(csr_name[i])
+                self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.tableCSR.setItem(i, 0, self.item_name_CSR)
+                self.item_value_CSR = QTableWidgetItem(csr_data[i])
+                self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.tableCSR.setItem(i, 1, self.item_value_CSR)
 
-    def getData(self):
-        healthPath = self.clientView.settings.value("CLIENT/DUT_Health")
-        filePath = healthPath + "/cpu_status_haps"
+    def getData(self, view):
+        if view == "VIEW_0":
+            healthPath = self.clientView.settings.value("CLIENT/DUT_Health")
+            filePath = healthPath + "/cpu_status_haps"
+        elif view == "VIEW_1":
+            snapshotPath = self.clientView.settings.value("CLIENT/DUT_Snapshot")
+            filePath = snapshotPath + "/regsnapshot_gem5.txt"
 
         with open(filePath) as f:
             content = f.read()
@@ -297,20 +312,20 @@ class REGREFsub(QMdiSubWindow):
 
     def CSR_tabUI(self):
         layout = QVBoxLayout()
-        self.tableCSR = QTableWidget(61, 2)
+        self.tableCSR = QTableWidget(167, 2)
         self.tableCSR.setHorizontalHeaderLabels(["Name", "Value"])
         self.tableCSR.horizontalHeader().setStretchLastSection(True)
         # self.tableCSR.verticalHeader.setHidden(True)
         self.tableCSR.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
-        self.tableCSR.setColumnWidth(0, 100)
+        self.tableCSR.setColumnWidth(0, 120)
         layout.addWidget(self.tableCSR)
         layout.setContentsMargins(0, 0, 0, 0)
         self.ref_CSR_tab.setLayout(layout)
         self.tableCSR.verticalHeader().setVisible(False)
 
-    def display(self):
+    def display(self, view):
         # get data from file
-        fileContent = self.getData()
+        fileContent = self.getData(view)
 
         # put data to tableGPR
         GPRName = ["x{i}".format(i=i+1) for i in range(31)]
@@ -342,19 +357,34 @@ class REGREFsub(QMdiSubWindow):
             self.tableFPR.setItem(i, 2, self.item_Value_FPR)
 
         # put data to tableCSR
-        csr_name = [fileContent[i][0] for i in range(65, 126)]
-        csr_data = [fileContent[i][1] for i in range(65, 126)]
-        for i in range(61):
-            self.item_name_CSR = QTableWidgetItem(csr_name[i])
-            self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-            self.tableCSR.setItem(i, 0, self.item_name_CSR)
-            self.item_value_CSR = QTableWidgetItem(csr_data[i])
-            self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-            self.tableCSR.setItem(i, 1, self.item_value_CSR)
+        if view == "VIEW_0":
+            csr_name = [fileContent[i][0] for i in range(65, 126)]
+            csr_data = [fileContent[i][1] for i in range(65, 126)]
+            for i in range(61):
+                self.item_name_CSR = QTableWidgetItem(csr_name[i])
+                self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.tableCSR.setItem(i, 0, self.item_name_CSR)
+                self.item_value_CSR = QTableWidgetItem(csr_data[i])
+                self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.tableCSR.setItem(i, 1, self.item_value_CSR)
+        elif view == "VIEW_1":
+            csr_name = [fileContent[i][0] for i in range(65, 232)]
+            csr_data = [fileContent[i][1] for i in range(65, 232)]
+            for i in range(167):
+                self.item_name_CSR = QTableWidgetItem(csr_name[i])
+                self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.tableCSR.setItem(i, 0, self.item_name_CSR)
+                self.item_value_CSR = QTableWidgetItem(csr_data[i])
+                self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.tableCSR.setItem(i, 1, self.item_value_CSR)
             
-    def getData(self):
-        healthPath = self.clientView.settings.value("CLIENT/REF_Health")
-        filePath = healthPath + "/cpu_status_spike"
+    def getData(self, view):
+        if view == "VIEW_0":
+            healthPath = self.clientView.settings.value("CLIENT/REF_Health")
+            filePath = healthPath + "/cpu_status_spike"
+        elif view == "VIEW_1":
+            snapshotPath = self.clientView.settings.value("CLIENT/REF_Snapshot")
+            filePath = snapshotPath + "/regsnapshot_gem5.txt"
 
         with open(filePath) as f:
             content = f.read()

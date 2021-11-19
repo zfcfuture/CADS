@@ -1,8 +1,11 @@
 import sys
+import re
 
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+
+from ClientConfView import ClientConfView
 
 class MEMDUTsub(QMdiSubWindow):
 
@@ -10,7 +13,11 @@ class MEMDUTsub(QMdiSubWindow):
     DUT Mem Date View
     """
     def __init__(self):
+
         super().__init__()
+
+        self.clientView = ClientConfView()
+
         #memDUT_sub = QMdiSubWindow(self)
         self.mem_dutlabel1 = QLabel()
         self.mem_dutlabel2 = QLabel()
@@ -58,8 +65,12 @@ class MEMDUTsub(QMdiSubWindow):
         self.dut_tableWidget = QTableWidget()
         table_layout1.addWidget(self.dut_tableWidget)
         table_widget1.setLayout(table_layout1)
-        self.dut_tableWidget.setColumnCount(5)
-        self.dut_tableWidget.setHorizontalHeaderLabels(['Address', 'Word', 'Byte0', 'Byte1', 'Byte2'])
+        self.dut_tableWidget.setRowCount(12904)
+        self.dut_tableWidget.setColumnCount(9)
+        self.dut_tableWidget.setHorizontalHeaderLabels(['Address', 'Word0', 'Word1', 'Word2', 'Word3', \
+                                                                   'Word4', 'Word5', 'Word6', 'Word7'])
+        self.dut_tableWidget.setShowGrid(False)
+        self.dut_tableWidget.verticalHeader().setVisible(False)
         self.dut_tableWidget.horizontalHeader().setStretchLastSection(True)
         self.dut_tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
@@ -84,13 +95,82 @@ class MEMDUTsub(QMdiSubWindow):
     def minshow(self):
         self.showNormal()
 
+    def display(self):
+        # handle data
+        memoryPath = self.clientView.settings.value("CLIENT/DUT_Snapshot") + "/memsnapshot_hexdump_haps.txt"
+        with open(memoryPath) as f:
+            content = f.read()
+        f.close()
+        content = content.split("\n")
+
+        finalData = []
+        deleteNum = ['0000', '0000', '0000', '0000', '0000', '0000', '0000', '0000']
+        for i in range(len(content)):
+            content[i] = list(filter(None, re.split(" |\t|\n|\r", content[i])))
+            if content[i] == []:
+                continue
+            elif content[i][0] == "*":
+                continue
+            elif content[i][1:] == deleteNum:
+                continue
+            finalData.append(content[i])
+
+        # display
+        for i in range(self.dut_tableWidget.rowCount()):
+            if i == self.dut_tableWidget.rowCount()-1:
+                self.item_Addres = QTableWidgetItem(finalData[i][0])
+                self.item_Addres.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.dut_tableWidget.setItem(i, 0, self.item_Addres)
+                break
+            else:
+                self.item_Addres = QTableWidgetItem(finalData[i][0])
+                self.item_Addres.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.dut_tableWidget.setItem(i, 0, self.item_Addres)
+
+            self.item_Word0 = QTableWidgetItem(finalData[i][1])
+            self.item_Word0.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.dut_tableWidget.setItem(i, 1, self.item_Word0)
+
+            self.item_Word1 = QTableWidgetItem(finalData[i][2])
+            self.item_Word1.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.dut_tableWidget.setItem(i, 2, self.item_Word1)
+
+            self.item_Word2 = QTableWidgetItem(finalData[i][3])
+            self.item_Word2.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.dut_tableWidget.setItem(i, 3, self.item_Word2)
+
+            self.item_Word3 = QTableWidgetItem(finalData[i][4])
+            self.item_Word3.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.dut_tableWidget.setItem(i, 4, self.item_Word3)
+
+            self.item_Word4 = QTableWidgetItem(finalData[i][5])
+            self.item_Word4.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.dut_tableWidget.setItem(i, 5, self.item_Word4)
+
+            self.item_Word5 = QTableWidgetItem(finalData[i][6])
+            self.item_Word5.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.dut_tableWidget.setItem(i, 6, self.item_Word5)
+
+            self.item_Word6 = QTableWidgetItem(finalData[i][7])
+            self.item_Word6.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.dut_tableWidget.setItem(i, 7, self.item_Word6)
+
+            self.item_Word7 = QTableWidgetItem(finalData[i][8])
+            self.item_Word7.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.dut_tableWidget.setItem(i, 8, self.item_Word7)
+
+
 class MEMREFsub(QMdiSubWindow):
 
     """
     Reference Mem Date View
     """
     def __init__(self):
+
         super().__init__()
+
+        self.clientView = ClientConfView()
+
         #memREF_sub = QMdiSubWindow(self)
         self.mem_reflabel1 = QLabel()
         self.mem_reflabel2 = QLabel()
@@ -138,9 +218,13 @@ class MEMREFsub(QMdiSubWindow):
         self.ref_tableWidget = QTableWidget()
         table_layout2.addWidget(self.ref_tableWidget)
         table_widget2.setLayout(table_layout2)
-        self.ref_tableWidget.setColumnCount(5)
-        self.ref_tableWidget.setHorizontalHeaderLabels(['Address', 'Word', 'Byte0', 'Byte1', 'Byte2'])
+        self.ref_tableWidget.setRowCount(12904)
+        self.ref_tableWidget.setColumnCount(9)
+        self.ref_tableWidget.setHorizontalHeaderLabels(['Address', 'Word0', 'Word1', 'Word2', 'Word3', \
+                                                                   'Word4', 'Word5', 'Word6', 'Word7'])
         self.ref_tableWidget.horizontalHeader().setStretchLastSection(True)
+        self.ref_tableWidget.setShowGrid(False)
+        self.ref_tableWidget.verticalHeader().setVisible(False)
         self.ref_tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         mem_refVlayout = QVBoxLayout()
@@ -163,3 +247,68 @@ class MEMREFsub(QMdiSubWindow):
 
     def minshow(self):
         self.showNormal()
+
+    def display(self):
+        # handle data
+        memoryPath = self.clientView.settings.value("CLIENT/REF_Snapshot") + "/memsnapshot_hexdump_gem5.txt"
+
+        with open(memoryPath) as f:
+            content = f.read()
+        f.close()
+        content = content.split("\n")
+
+        middleData = []
+        deleteNum = ['0000', '0000', '0000', '0000', '0000', '0000', '0000', '0000']
+        for i in range(len(content)):
+            content[i] = list(filter(None, re.split(" |\t|\n|\r", content[i])))
+            if content[i] == []:
+                continue
+            elif content[i][0] == "*":
+                continue
+            elif content[i][1:] == deleteNum:
+                continue
+            middleData.append(content[i])
+        
+        # display
+        for i in range(self.ref_tableWidget.rowCount()):
+            if i == self.ref_tableWidget.rowCount()-1:
+                self.item_Addres = QTableWidgetItem(middleData[i][0])
+                self.item_Addres.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.ref_tableWidget.setItem(i, 0, self.item_Addres)
+                break
+            else:
+                self.item_Addres = QTableWidgetItem(middleData[i][0])
+                self.item_Addres.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.ref_tableWidget.setItem(i, 0, self.item_Addres)
+
+            self.item_Word0 = QTableWidgetItem(middleData[i][1])
+            self.item_Word0.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.ref_tableWidget.setItem(i, 1, self.item_Word0)
+
+            self.item_Word1 = QTableWidgetItem(middleData[i][2])
+            self.item_Word1.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.ref_tableWidget.setItem(i, 2, self.item_Word1)
+
+            self.item_Word2 = QTableWidgetItem(middleData[i][3])
+            self.item_Word2.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.ref_tableWidget.setItem(i, 3, self.item_Word2)
+
+            self.item_Word3 = QTableWidgetItem(middleData[i][4])
+            self.item_Word3.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.ref_tableWidget.setItem(i, 4, self.item_Word3)
+
+            self.item_Word4 = QTableWidgetItem(middleData[i][5])
+            self.item_Word4.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.ref_tableWidget.setItem(i, 5, self.item_Word4)
+
+            self.item_Word5 = QTableWidgetItem(middleData[i][6])
+            self.item_Word5.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.ref_tableWidget.setItem(i, 6, self.item_Word5)
+
+            self.item_Word6 = QTableWidgetItem(middleData[i][7])
+            self.item_Word6.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.ref_tableWidget.setItem(i, 7, self.item_Word6)
+
+            self.item_Word7 = QTableWidgetItem(middleData[i][8])
+            self.item_Word7.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.ref_tableWidget.setItem(i, 8, self.item_Word7)
