@@ -371,7 +371,7 @@ class DebugManage(QMainWindow, Ui_MainWindow):
                 #     self.isREF_sub.display(ref_pc)
                 #     self.isDUT_sub.display(dut_pc)
 
-                time.sleep(3)
+                time.sleep(2)
                 
                 # compare health(REF & DUT) and send flag
                 while True:
@@ -385,7 +385,7 @@ class DebugManage(QMainWindow, Ui_MainWindow):
                         if content == "":
                             self.sendFlag()
                         else:
-                            QMessageBox.information(self, '提示', '健康信息异常，程序已停止!')
+                            QMessageBox.information(self, '警告', '健康信息异常，程序已停止!')
                             input()
                         f.close()
                         break
@@ -634,6 +634,7 @@ class FileEventHandler(FileSystemEventHandler):
             print("file modified:{0}".format(event.src_path))
             # print(event.src_path, DebugManage().clientView.ref_healthPath)
 
+
 if __name__ == "__main__":
     with open('view/app.qss', encoding='utf-8') as f:
         qss = f.read()
@@ -641,5 +642,6 @@ if __name__ == "__main__":
     app.setStyleSheet(qss)
     gui = DebugManage()
     gui.setWindowIcon(QIcon('imgs/block.png'))
+    os.popen('cd {path}/backend && ./initialFile.sh'.format(path=os.getcwd()))
     gui.show()
     sys.exit(app.exec_())

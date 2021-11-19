@@ -183,10 +183,10 @@ class REGDUTsub(QMdiSubWindow):
     def getData(self, view):
         if view == "VIEW_0":
             healthPath = self.clientView.settings.value("CLIENT/DUT_Health")
-            filePath = healthPath + "/cpu_status_haps"
+            filePath = healthPath + "/cpu_status_haps.txt"
         elif view == "VIEW_1":
             snapshotPath = self.clientView.settings.value("CLIENT/DUT_Snapshot")
-            filePath = snapshotPath + "/regsnapshot_gem5.txt"
+            filePath = snapshotPath + "/regsnapshot_haps.txt"
 
         with open(filePath) as f:
             content = f.read()
@@ -381,7 +381,7 @@ class REGREFsub(QMdiSubWindow):
     def getData(self, view):
         if view == "VIEW_0":
             healthPath = self.clientView.settings.value("CLIENT/REF_Health")
-            filePath = healthPath + "/cpu_status_spike"
+            filePath = healthPath + "/cpu_status_gem5.txt"
         elif view == "VIEW_1":
             snapshotPath = self.clientView.settings.value("CLIENT/REF_Snapshot")
             filePath = snapshotPath + "/regsnapshot_gem5.txt"
