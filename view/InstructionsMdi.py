@@ -118,7 +118,7 @@ class ISDUTsub(QMdiSubWindow):
         for i in range(len(content)):
             content[i] = [x for x in re.split(" |\t|\n|\r", content[i].strip())]
             content[i] = list(filter(None, content[i]))
-            if len(content[i]) != 0 and content[i][0][0].isdigit():
+            if len(content[i]) != 0 and content[i][0][0].isdigit() and len(content[i][0]) == 9:
                 middleList.append(content[i])
 
         # get key information
@@ -133,7 +133,10 @@ class ISDUTsub(QMdiSubWindow):
             self.item_pc = QTableWidgetItem(keyList[i][0][:-1])
             self.item_pc.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
             self.is_dut_message.setItem(i, 0, self.item_pc)
-            self.item_ins = QTableWidgetItem(keyList[i][2]+"  "+keyList[i][3])
+            if len(keyList[i]) == 4:
+                self.item_ins = QTableWidgetItem(keyList[i][2]+"  "+keyList[i][3])
+            else:
+                self.item_ins = QTableWidgetItem(keyList[i][2])
             self.item_ins.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
             self.is_dut_message.setItem(i, 1, self.item_ins)
             if i == 10:
@@ -250,7 +253,7 @@ class ISREFsub(QMdiSubWindow):
         for i in range(len(content)):
             content[i] = [x for x in re.split(" |\t|\n|\r", content[i].strip())]
             content[i] = list(filter(None, content[i]))
-            if len(content[i]) != 0 and content[i][0][0].isdigit():
+            if len(content[i]) != 0 and content[i][0][0].isdigit() and len(content[i][0]) == 9:
                 middleList.append(content[i])
 
         # get key information
@@ -265,7 +268,10 @@ class ISREFsub(QMdiSubWindow):
             self.item_pc = QTableWidgetItem(keyList[i][0][:-1])
             self.item_pc.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
             self.is_ref_message.setItem(i, 0, self.item_pc)
-            self.item_ins = QTableWidgetItem(keyList[i][2]+"  "+keyList[i][3])
+            if len(keyList[i]) == 4:
+                self.item_ins = QTableWidgetItem(keyList[i][2]+"  "+keyList[i][3])
+            else:
+                self.item_ins = QTableWidgetItem(keyList[i][2])
             self.item_ins.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
             self.is_ref_message.setItem(i, 1, self.item_ins)
             if i == 10:

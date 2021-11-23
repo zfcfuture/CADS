@@ -114,7 +114,7 @@ class REGDUTsub(QMdiSubWindow):
 
     def CSR_tabUI(self):
         layout = QVBoxLayout()
-        self.tableCSR = QTableWidget(167, 2)
+        self.tableCSR = QTableWidget(160, 2)
         self.tableCSR.setHorizontalHeaderLabels(["Name", "Value"])
         self.tableCSR.horizontalHeader().setStretchLastSection(True)
         # self.tableCSR.verticalHeader.setHidden(True)
@@ -160,9 +160,9 @@ class REGDUTsub(QMdiSubWindow):
 
         # put data to tableCSR
         if view == "VIEW_0":
-            csr_name = [fileContent[i][0] for i in range(65, 126)]
-            csr_data = [fileContent[i][1] for i in range(65, 126)]
-            for i in range(61):
+            csr_name = [fileContent[i][0] for i in range(65, 117)]
+            csr_data = [fileContent[i][1] for i in range(65, 117)]
+            for i in range(52):
                 self.item_name_CSR = QTableWidgetItem(csr_name[i])
                 self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                 self.tableCSR.setItem(i, 0, self.item_name_CSR)
@@ -170,9 +170,9 @@ class REGDUTsub(QMdiSubWindow):
                 self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                 self.tableCSR.setItem(i, 1, self.item_value_CSR)
         elif view == "VIEW_1":
-            csr_name = [fileContent[i][0] for i in range(65, 232)]
-            csr_data = [fileContent[i][1] for i in range(65, 232)]
-            for i in range(167):
+            csr_name = [fileContent[i][0] for i in range(65, 225)]
+            csr_data = [fileContent[i][1] for i in range(65, 225)]
+            for i in range(160):
                 self.item_name_CSR = QTableWidgetItem(csr_name[i])
                 self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                 self.tableCSR.setItem(i, 0, self.item_name_CSR)
@@ -312,7 +312,7 @@ class REGREFsub(QMdiSubWindow):
 
     def CSR_tabUI(self):
         layout = QVBoxLayout()
-        self.tableCSR = QTableWidget(167, 2)
+        self.tableCSR = QTableWidget(166, 2)
         self.tableCSR.setHorizontalHeaderLabels(["Name", "Value"])
         self.tableCSR.horizontalHeader().setStretchLastSection(True)
         # self.tableCSR.verticalHeader.setHidden(True)
@@ -358,9 +358,9 @@ class REGREFsub(QMdiSubWindow):
 
         # put data to tableCSR
         if view == "VIEW_0":
-            csr_name = [fileContent[i][0] for i in range(65, 126)]
-            csr_data = [fileContent[i][1] for i in range(65, 126)]
-            for i in range(61):
+            csr_name = [fileContent[i][0] for i in range(65, 117)]
+            csr_data = [fileContent[i][1] for i in range(65, 117)]
+            for i in range(52):
                 self.item_name_CSR = QTableWidgetItem(csr_name[i])
                 self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                 self.tableCSR.setItem(i, 0, self.item_name_CSR)
@@ -368,9 +368,9 @@ class REGREFsub(QMdiSubWindow):
                 self.item_value_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                 self.tableCSR.setItem(i, 1, self.item_value_CSR)
         elif view == "VIEW_1":
-            csr_name = [fileContent[i][0] for i in range(65, 232)]
-            csr_data = [fileContent[i][1] for i in range(65, 232)]
-            for i in range(167):
+            csr_name = [fileContent[i][0] for i in range(65, 231)]
+            csr_data = [fileContent[i][1] for i in range(65, 231)]
+            for i in range(166):
                 self.item_name_CSR = QTableWidgetItem(csr_name[i])
                 self.item_name_CSR.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                 self.tableCSR.setItem(i, 0, self.item_name_CSR)

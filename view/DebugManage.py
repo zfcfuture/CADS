@@ -337,6 +337,11 @@ class DebugManage(QMainWindow, Ui_MainWindow):
             res2 = os.popen("cd {path};{cmd}".format(path=entryPath, cmd=cmdSTR)).read()
             print(res2)
 
+        # auto execute
+        # os.popen('cd {path}/backend && python remote_start_gem5.py'.format(path=os.getcwd()))
+        # os.popen('cd {path}/backend && python remote_exportsnapshots_gem5.py'.format(path=os.getcwd()))
+        # os.popen('cd {path}/backend && python remote_exportsnapshots_haps.py'.format(path=os.getcwd()))
+
         # display information from files(Instruction, Register, Memory)
         p = Thread(target=self.WatchdogUDF)
         p.setDaemon(True)
@@ -348,12 +353,12 @@ class DebugManage(QMainWindow, Ui_MainWindow):
 
     def WatchdogUDF(self):
         # set initial value for health information
-        fileName_1 = self.clientView.ref_healthPath + "/cpu_status_spike"
-        fileName_2 = self.clientView.dut_healthPath + "/cpu_status_haps"
-        healthFirstFlag = 0
-        file_1 = open(fileName_1, "r+")
+        fileName_1 = self.clientView.ref_healthPath + "/cpu_status_gem5.txt"
+        fileName_2 = self.clientView.dut_healthPath + "/cpu_status_haps.txt"
+        # healthFirstFlag = 0
+        # file_1 = open(fileName_1, "r+")
         firstTime_1 = time.localtime(os.path.getmtime(fileName_1))
-        file_2 = open(fileName_2, "r+")
+        # file_2 = open(fileName_2, "r+")
         firstTime_2 = time.localtime(os.path.getmtime(fileName_2))
 
         while True:
@@ -362,16 +367,17 @@ class DebugManage(QMainWindow, Ui_MainWindow):
                 view = "VIEW_0"     # VIEW_0:health VIEW_1:snapshot
                 # if healthFirstFlag == 0:
                 #     healthFirstFlag = 1
-                #     self.regREF_sub.display(view)
-                #     file_1.close()
-                #     self.regDUT_sub.display(view)
-                #     file_2.close()
-                #     ref_pc = self.showStatus("REF", view)
-                #     dut_pc = self.showStatus("DUT", view)
-                #     self.isREF_sub.display(ref_pc)
-                #     self.isDUT_sub.display(dut_pc)
+                    # self.regREF_sub.display(view)
+                    # file_1.close()
+                    # self.regDUT_sub.display(view)
+                    # file_2.close()
+                    # ref_pc = self.showStatus("REF", view)
+                    # dut_pc = self.showStatus("DUT", view)
+                    # self.isREF_sub.display(ref_pc)
+                    # self.isDUT_sub.display(dut_pc)
 
-                time.sleep(2)
+                # time.sleep(2)
+                # print(self.switchFlag)
                 
                 # compare health(REF & DUT) and send flag
                 while True:
@@ -407,11 +413,11 @@ class DebugManage(QMainWindow, Ui_MainWindow):
     def WatchdogUDF2(self):
         # set initial value for snapshot register
         refSnapshotFile = self.clientView.ref_snapshotPath + "/regsnapshot_gem5.txt"
-        dutSnapshotFile = self.clientView.dut_snapshotPath + "/regsnapshot_gem5.txt"
-        snapFirstFlag = 0
-        file_ref = open(refSnapshotFile, "r+")
+        dutSnapshotFile = self.clientView.dut_snapshotPath + "/regsnapshot_haps.txt"
+        # snapFirstFlag = 0
+        # file_ref = open(refSnapshotFile, "r+")
         firstTime_ref = time.localtime(os.path.getmtime(refSnapshotFile))
-        file_dut = open(dutSnapshotFile, "r+")
+        # file_dut = open(dutSnapshotFile, "r+")
         firstTime_dut = time.localtime(os.path.getmtime(dutSnapshotFile))
 
         # set initial value for snapshot memory
@@ -479,7 +485,7 @@ class DebugManage(QMainWindow, Ui_MainWindow):
         ip_2 = self.serverView.dut_remoteHost
         user_2 = self.serverView.dut_hostname
         passwd_2 = self.serverView.dut_password
-        cmd_2 = "cd ~/debugToolData;echo '1'> flag.txt"
+        cmd_2 = "cd ~/CADS-DUT/debugToolData;echo '1'> flag.txt"
         self.serverCMD(ip_2, user_2, passwd_2, cmd_2)
 
     def showStatus(self, source, view):
@@ -644,4 +650,5 @@ if __name__ == "__main__":
     gui.setWindowIcon(QIcon('imgs/block.png'))
     os.popen('cd {path}/backend && ./initialFile.sh'.format(path=os.getcwd()))
     gui.show()
+    # gui.isDUT_sub.display("0x80010dca")
     sys.exit(app.exec_())

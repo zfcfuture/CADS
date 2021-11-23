@@ -2,7 +2,7 @@
 rm -rf ~/debugTool/snapshot/REF/*
 rm -rf ~/debugTool/snapshot/DUT/*
 rm -rf ~/debugTool/health/REF/*
-rm -rf ~/debugTool/health/REF/*
+rm -rf ~/debugTool/health/DUT/*
 rm -rf ~/debugTool/healthReport/*
 
 touch ~/debugTool/snapshot/REF/regsnapshot_gem5.txt
